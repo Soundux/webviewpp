@@ -68,9 +68,9 @@ namespace Soundux
         std::string url;
         bool shouldExit;
 
-        std::map<std::string, callback_t> callbacks;
         std::function<void(int, int)> resizeCallback;
         std::function<void(const std::string &)> navigateCallback;
+        std::map<std::string, std::pair<callback_t, std::string>> callbacks;
 
         static inline std::string callback_code = R"js(
           async function {0}(...param)
@@ -165,7 +165,7 @@ namespace Soundux
             auto code = std::regex_replace(callback_code, std::regex(R"(\{0\})"), name);
             runCode(code);
 
-            callbacks.insert({name, func});
+            callbacks.insert({name, {func, code}});
         }
     };
 } // namespace Soundux

@@ -38,7 +38,7 @@ namespace Soundux
             auto name = j.at("name").get<std::string>();
 
             auto code = std::regex_replace(resolve_code, std::regex(R"(\{0\})"), std::to_string(seq));
-            code = std::regex_replace(code, std::regex(R"(\{1\})"), callbacks.at(name)(params));
+            code = std::regex_replace(code, std::regex(R"(\{1\})"), callbacks.at(name).first(params));
             runCode(code);
         }
     }
