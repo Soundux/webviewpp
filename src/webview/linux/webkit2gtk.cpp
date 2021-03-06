@@ -70,7 +70,7 @@ namespace Soundux
 
         window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
         gtk_window_set_resizable(GTK_WINDOW(window), true);              // NOLINT
-        gtk_widget_set_size_request(GTK_WIDGET(window), width, height);  // NOLINT
+        gtk_window_set_default_size(GTK_WINDOW(window), width, height);  // NOLINT
         gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER); // NOLINT
 
         GtkWidget *scrollView = gtk_scrolled_window_new(nullptr, nullptr);
