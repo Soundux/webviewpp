@@ -27,7 +27,7 @@ bool WebView::getDevToolsEnabled();
 
 ---
 ```cpp
-bool WebView::enableDevTools(bool enable);
+void WebView::enableDevTools(bool enable);
 ```
 `Remarks:` <i>Disabling devtools also disables context menu</i>  
 `Enable:` <i>False disables devtools, true enables devtools</i>  
