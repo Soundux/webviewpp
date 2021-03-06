@@ -3,7 +3,7 @@ project(webview-example VERSION 0.1)
 
 add_executable(webview-example "main.cpp")
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../ ${CMAKE_CURRENT_SOURCE_DIR}/../../example_build)
-target_link_libraries(webview-example webview)
+target_link_libraries(webview-example webview EXCLUDE_FROM_ALL)
 
 target_compile_features(webview-example PUBLIC cxx_std_17)
 set_target_properties(webview-example PROPERTIES CMAKE_CXX_STANDARD 17)

@@ -11,7 +11,7 @@ A cross-platform C++17 library that allows you to create a simple webview.
 
 - Add the library to your project
   - ```cmake
-    add_subdirectory(/path/to/webviewpp)
+    add_subdirectory(/path/to/webviewpp EXCLUDE_FROM_ALL)
     link_libraries(webview)
     ```
 - Use the library
