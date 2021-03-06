@@ -92,9 +92,6 @@ namespace Soundux
         gtk_widget_grab_focus(GTK_WIDGET(webview)); // NOLINT
         gtk_widget_show_all(window);
 
-        GdkRGBA color = {255 / 255.0, 255 / 255.0, 255 / 255.0, 255 / 255.0};
-        webkit_web_view_set_background_color(WEBKIT_WEB_VIEW(webview), &color); // NOLINT
-
         runCode("window.external={invoke:arg=>window.webkit."
                 "messageHandlers.external.postMessage(arg)};");
         runCode(setup_code);
