@@ -11,7 +11,7 @@ A cross-platform C++17 library that allows you to create a simple webview.
 
 - Add the library to your project
   - ```cmake
-    add_subdirectory(/path/to/webview)
+    add_subdirectory(/path/to/webviewpp EXCLUDE_FROM_ALL)
     link_libraries(webview)
     ```
 - Use the library
@@ -27,7 +27,7 @@ bool WebView::getDevToolsEnabled();
 
 ---
 ```cpp
-bool WebView::enableDevTools(bool enable);
+void WebView::enableDevTools(bool enable);
 ```
 `Remarks:` <i>Disabling devtools also disables context menu</i>  
 `Enable:` <i>False disables devtools, true enables devtools</i>  

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 project(webview-example VERSION 0.1)
 
 add_executable(webview-example "main.cpp")
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../ ${CMAKE_CURRENT_SOURCE_DIR}/../../example_build)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../ ${CMAKE_CURRENT_SOURCE_DIR}/../../example_build EXCLUDE_FROM_ALL)
 target_link_libraries(webview-example webview)
 
 target_compile_features(webview-example PUBLIC cxx_std_17)
