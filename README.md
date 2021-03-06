@@ -1,6 +1,12 @@
 ## webviewpp
 A cross-platform C++17 library that allows you to create a simple webview.
 
+## Compatibility
+| Platform | Used Browser                                                                    | GUI    |
+| -------- | ------------------------------------------------------------------------------- | ------ |
+| Windows  | [Webview2](https://docs.microsoft.com/microsoft-edge/webview2/) (Edge Chromium) | WinAPI |
+| Linux    | WebKit2GTK                                                                      | GTK    |
+
 ## Usage
 
 - Add the library to your project
@@ -92,5 +98,8 @@ void WebView::addCallback(const std::string &name, func_t function);
 `Name:` <i>Name of the function to be added</i>  
 `Remarks:`   
 <i>The return type of the function must be default constructible or void</i>  
-<i>All of the functions parameters as well as the functions return type need to be serializable by nlohmann::json</i>  
+<i>All of the functions parameters as well as the functions return type need to be [serializable by nlohmann::json](https://github.com/nlohmann/json#how-do-i-convert-third-party-types)</i>  
 <i>The return type can also be `std::optional` in that case the javascript function will return `null` if  the optional doesn't hold a value</i>
+
+
+<i>Note: This work was originally based on the work of [MichaelKim](https://github.com/MichaelKim/webview)</i>
