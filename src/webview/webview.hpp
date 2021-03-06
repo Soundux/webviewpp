@@ -122,6 +122,7 @@ namespace Soundux
 
         virtual void setResizeCallback(const std::function<void(int, int)> &);
         virtual void setNavigateCallback(const std::function<void(const std::string &)> &);
+
         template <typename func_t> void addCallback(const std::string &name, func_t function)
         {
             using func_traits = traits::func_traits<decltype(function)>;
