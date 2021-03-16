@@ -133,9 +133,11 @@ namespace Soundux
     {
         assert(webview != nullptr);
         // NOLINTNEXTLINE
-        webkit_web_view_run_javascript(WEBKIT_WEB_VIEW(webview),
-                                       std::regex_replace(code, std::regex(R"rgx(\\")rgx"), R"(\\\")").c_str(), nullptr,
-                                       nullptr, nullptr);
+
+        auto formattedCode = std::regex_replace(code, std::regex(R"rgx(\\")rgx"), R"(\\\")");
+        formattedCode = std::regex_replace(formattedCode, std::regex(R"rgx(\\n)rgx"), R"(\\n)");
+        formattedCode = std::regex_replace(formattedCode, std::regex(R"rgx(\\t)rgx"), R"(\\t)");
+        webkit_web_view_run_javascript(WEBKIT_WEB_VIEW(webview), formattedCode.c_str(), nullptr, nullptr, nullptr);
     }
 } // namespace Soundux
 #endif
