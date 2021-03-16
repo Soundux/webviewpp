@@ -231,11 +231,11 @@ namespace Soundux
             formattedCode = std::regex_replace(formattedCode, std::regex(R"rgx(\\t)rgx"), R"(\\t)");
 
             webViewWindow->ExecuteScript(
-                widen(formattedCode.c_str(),
+                widen(formattedCode).c_str(),
                 Callback<ICoreWebView2ExecuteScriptCompletedHandler>([]([[maybe_unused]] HRESULT errorCode,
                                                                         [[maybe_unused]] LPCWSTR resultObjectAsJson)
                                                                          -> HRESULT {
-                return S_OK;
+                    return S_OK;
                 }).Get());
         }
     }
