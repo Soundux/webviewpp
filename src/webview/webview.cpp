@@ -1,4 +1,5 @@
 #include "webview.hpp"
+#include <memory>
 #include <string>
 
 namespace Soundux
@@ -34,12 +35,22 @@ namespace Soundux
         if (!j.is_discarded())
         {
             auto params = j.at("params");
-            auto seq = j.at("seq").get<std::uint32_t>();
             auto name = j.at("name").get<std::string>();
+            auto seq = j.at("seq").get<std::uint32_t>();
 
-            auto code = std::regex_replace(resolve_code, std::regex(R"(\{0\})"), std::to_string(seq));
-            code = std::regex_replace(code, std::regex(R"(\{1\})"), callbacks.at(name).first(params));
-            runCode(code);
+            auto callback = callbacks.at(name);
+
+            auto syncPtr = std::dynamic_pointer_cast<syncCallback>(callback);
+            if (syncPtr)
+            {
+                auto code = std::regex_replace(resolve_code, std::regex(R"(\{0\})"), std::to_string(seq));
+                code = std::regex_replace(code, std::regex(R"(\{1\})"), syncPtr->function(params));
+                runCode(code);
+            }
+            else
+            {
+                std::dynamic_pointer_cast<asyncCallback>(callback)->function(params, seq);
+            }
         }
     }
     void WebView::onResize(int width, int height)

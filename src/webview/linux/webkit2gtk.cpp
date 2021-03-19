@@ -19,16 +19,6 @@ namespace Soundux
                                  [[maybe_unused]] gpointer arg)
     {
         auto *webview = reinterpret_cast<WebKit2Gtk *>(arg);
-        if (event == WEBKIT_LOAD_COMMITTED)
-        {
-            for (const auto &callback : webview->callbacks)
-            {
-                webview->runCode("window.external={invoke:arg=>window.webkit."
-                                 "messageHandlers.external.postMessage(arg)};");
-                webview->runCode(setup_code);
-                webview->runCode(callback.second.second);
-            }
-        }
         webview->onNavigate(webkit_web_view_get_uri(webkitwebview));
     }
 

@@ -34,6 +34,18 @@ namespace Soundux
           public:
             static const bool value = sizeof(test(reinterpret_cast<T *>(0))) == sizeof(std::uint16_t);
         };
+
+        template <typename T, typename Tuple> struct has_type;
+        template <typename T> struct has_type<T, std::tuple<>> : std::false_type
+        {
+        };
+        template <typename T, typename U, typename... Ts>
+        struct has_type<T, std::tuple<U, Ts...>> : has_type<T, std::tuple<Ts...>>
+        {
+        };
+        template <typename T, typename... Ts> struct has_type<T, std::tuple<T, Ts...>> : std::true_type
+        {
+        };
     } // namespace traits
     namespace helpers
     {
@@ -57,9 +69,42 @@ namespace Soundux
             }
         }
     } // namespace helpers
+
+    struct JSPromise
+    {
+        std::uint32_t id;
+    };
+
     class WebView
     {
-        using callback_t = std::function<std::string(const nlohmann::json &)>;
+        struct callback
+        {
+            std::string code;
+
+            callback(std::string code) : code(std::move(code)) {}
+            virtual ~callback() = default;
+        };
+        struct syncCallback : callback
+        {
+            std::function<std::string(const nlohmann::json &)> function;
+
+            syncCallback(const std::string &code, std::function<std::string(const nlohmann::json &)> function)
+                : callback(code), function(std::move(function))
+            {
+            }
+            ~syncCallback() override = default;
+        };
+        struct asyncCallback : callback
+        {
+            std::function<void(const nlohmann::json &, const std::uint32_t &)> function;
+
+            asyncCallback(const std::string &code,
+                          std::function<void(const nlohmann::json &, const std::uint32_t &)> function)
+                : callback(code), function(std::move(function))
+            {
+            }
+            ~asyncCallback() override = default;
+        };
 
       protected:
         int width;
@@ -70,7 +115,7 @@ namespace Soundux
 
         std::function<void(int, int)> resizeCallback;
         std::function<void(const std::string &)> navigateCallback;
-        std::map<std::string, std::pair<callback_t, std::string>> callbacks;
+        std::map<std::string, std::shared_ptr<callback>> callbacks;
 
         static inline std::string callback_code = R"js(
           async function {0}(...param)
@@ -123,49 +168,95 @@ namespace Soundux
         virtual void setResizeCallback(const std::function<void(int, int)> &);
         virtual void setNavigateCallback(const std::function<void(const std::string &)> &);
 
-        template <typename func_t> void addCallback(const std::string &name, func_t function)
+        template <typename T> void resolve(const JSPromise &promise, const T &result)
         {
-            using func_traits = traits::func_traits<decltype(function)>;
-            auto func = [this, function](const nlohmann::json &j) -> std::string {
-                typename func_traits::arg_t packedArgs;
-
-                helpers::setTuple<func_traits::arg_count - 1>(packedArgs,
-                                                              [&j](auto index, auto &val) { j.at(index).get_to(val); });
-
-                if constexpr (std::is_void_v<typename func_traits::return_t>)
+            std::string rtn;
+            if constexpr (traits::is_optional<std::decay_t<T>>::value)
+            {
+                if (result)
                 {
-                    auto unpackFunc = [function](auto &&...args) { function(args...); };
-                    std::apply(unpackFunc, packedArgs);
-                    return "null";
-                }
-                else if constexpr (traits::is_optional<typename func_traits::return_t>::value)
-                {
-                    typename func_traits::return_t rtn;
-
-                    auto unpackFunc = [&rtn, function](auto &&...args) { rtn = std::move(function(args...)); };
-                    std::apply(unpackFunc, packedArgs);
-
-                    if (rtn)
-                    {
-                        return nlohmann::json(*rtn).dump();
-                    }
-                    return "null";
+                    rtn = nlohmann::json(*result).dump();
                 }
                 else
                 {
-                    typename func_traits::return_t rtn;
-
-                    auto unpackFunc = [&rtn, function](auto &&...args) { rtn = std::move(function(args...)); };
-                    std::apply(unpackFunc, packedArgs);
-
-                    return nlohmann::json(rtn).dump();
+                    rtn = "null";
                 }
-            };
+            }
+            else
+            {
+                rtn = nlohmann::json(result).dump();
+            }
 
-            auto code = std::regex_replace(callback_code, std::regex(R"(\{0\})"), name);
+            auto code = std::regex_replace(resolve_code, std::regex(R"(\{0\})"), std::to_string(promise.id));
+            code = std::regex_replace(code, std::regex(R"(\{1\})"), rtn);
             runCode(code);
+        }
+        template <typename func_t> void addCallback(const std::string &name, func_t function)
+        {
+            using func_traits = traits::func_traits<decltype(function)>;
+            using arg_t = typename func_traits::arg_t;
 
-            callbacks.insert({name, {func, code}});
+            if constexpr (traits::has_type<JSPromise, arg_t>::value && std::is_void_v<typename func_traits::return_t>)
+            {
+                auto func = [this, function](const nlohmann::json &j, const std::uint32_t &seq) {
+                    arg_t packedArgs;
+
+                    helpers::setTuple<func_traits::arg_count - 2>(
+                        packedArgs, [&j](auto index, auto &val) { j.at(index).get_to(val); });
+                    std::get<func_traits::arg_count - 1>(packedArgs) = JSPromise{seq};
+
+                    auto unpackFunc = [seq, function](auto &&...args) { function(args...); };
+                    std::apply(unpackFunc, packedArgs);
+                };
+
+                auto code = std::regex_replace(callback_code, std::regex(R"(\{0\})"), name);
+                runCode(code);
+
+                callbacks.emplace(name, std::make_unique<asyncCallback>(code, func));
+            }
+            else
+            {
+                auto func = [this, function](const nlohmann::json &j) -> std::string {
+                    arg_t packedArgs;
+
+                    helpers::setTuple<func_traits::arg_count - 1>(
+                        packedArgs, [&j](auto index, auto &val) { j.at(index).get_to(val); });
+
+                    if constexpr (std::is_void_v<typename func_traits::return_t>)
+                    {
+                        auto unpackFunc = [function](auto &&...args) { function(args...); };
+                        std::apply(unpackFunc, packedArgs);
+                        return "null";
+                    }
+                    else if constexpr (traits::is_optional<typename func_traits::return_t>::value)
+                    {
+                        typename func_traits::return_t rtn;
+
+                        auto unpackFunc = [&rtn, function](auto &&...args) { rtn = std::move(function(args...)); };
+                        std::apply(unpackFunc, packedArgs);
+
+                        if (rtn)
+                        {
+                            return nlohmann::json(*rtn).dump();
+                        }
+                        return "null";
+                    }
+                    else
+                    {
+                        typename func_traits::return_t rtn;
+
+                        auto unpackFunc = [&rtn, function](auto &&...args) { rtn = std::move(function(args...)); };
+                        std::apply(unpackFunc, packedArgs);
+
+                        return nlohmann::json(rtn).dump();
+                    }
+                };
+
+                auto code = std::regex_replace(callback_code, std::regex(R"(\{0\})"), name);
+                runCode(code);
+
+                callbacks.emplace(name, std::make_unique<syncCallback>(code, func));
+            }
         }
     };
 } // namespace Soundux
