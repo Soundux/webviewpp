@@ -115,7 +115,7 @@ namespace Soundux
 
         std::function<void(int, int)> resizeCallback;
         std::function<void(const std::string &)> navigateCallback;
-        std::map<std::string, std::shared_ptr<callback>> callbacks;
+        std::map<std::string, std::unique_ptr<callback>> callbacks;
 
         static inline std::string callback_code = R"js(
           async function {0}(...param)

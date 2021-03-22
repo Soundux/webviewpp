@@ -38,9 +38,9 @@ namespace Soundux
             auto name = j.at("name").get<std::string>();
             auto seq = j.at("seq").get<std::uint32_t>();
 
-            auto callback = callbacks.at(name);
+            const auto &callback = callbacks.at(name);
 
-            auto syncPtr = std::dynamic_pointer_cast<syncCallback>(callback);
+            auto *syncPtr = dynamic_cast<syncCallback *>(callback.get());
             if (syncPtr)
             {
                 auto code = std::regex_replace(resolve_code, std::regex(R"(\{0\})"), std::to_string(seq));
@@ -49,7 +49,7 @@ namespace Soundux
             }
             else
             {
-                std::dynamic_pointer_cast<asyncCallback>(callback)->function(params, seq);
+                dynamic_cast<asyncCallback *>(callback.get())->function(params, seq);
             }
         }
     }
