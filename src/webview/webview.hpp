@@ -4,6 +4,7 @@
 #include <functional>
 #include <json.hpp>
 #include <map>
+#include <mutex>
 #include <optional>
 #include <queue>
 #include <regex>
