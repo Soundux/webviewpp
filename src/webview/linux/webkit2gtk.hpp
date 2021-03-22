@@ -1,4 +1,5 @@
 #if defined(__linux__)
+#pragma once
 #include "../webview.hpp"
 #include <JavaScriptCore/JavaScript.h>
 #include <cassert>
