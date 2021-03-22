@@ -71,4 +71,24 @@ namespace Soundux
             navigateCallback(url);
         }
     }
+    void WebView::runCodeSafe(const std::string &code)
+    {
+        std::lock_guard lock(queueMutex);
+        codeQueue.emplace(code);
+        checkQueue = true;
+    }
+    void WebView::doQueue()
+    {
+        if (checkQueue)
+        {
+            std::lock_guard lock(queueMutex);
+            while (!codeQueue.empty())
+            {
+                auto first = std::move(codeQueue.front());
+                codeQueue.pop();
+                runCode(first);
+            }
+            checkQueue = false;
+        }
+    }
 } // namespace Soundux

@@ -91,6 +91,8 @@ namespace Soundux
     bool WebKit2Gtk::run()
     {
         gtk_main_iteration_do(true);
+        doQueue();
+
         return !shouldExit;
     }
     void WebKit2Gtk::setTitle(const std::string &title)

@@ -1,9 +1,11 @@
 #pragma once
+#include <atomic>
 #include <cstdint>
 #include <functional>
 #include <json.hpp>
 #include <map>
 #include <optional>
+#include <queue>
 #include <regex>
 #include <string>
 #include <type_traits>
@@ -113,6 +115,10 @@ namespace Soundux
         std::string url;
         bool shouldExit;
 
+        std::mutex queueMutex;
+        std::atomic<bool> checkQueue;
+        std::queue<std::string> codeQueue;
+
         std::function<void(int, int)> resizeCallback;
         std::function<void(const std::string &)> navigateCallback;
         std::map<std::string, std::unique_ptr<callback>> callbacks;
@@ -143,6 +149,7 @@ namespace Soundux
         )js";
 
         virtual void onExit();
+        virtual void doQueue();
         virtual void onResize(int, int);
         virtual void onNavigate(const std::string &);
         virtual void resolveCallback(const std::string &);
@@ -161,9 +168,10 @@ namespace Soundux
 
         virtual void setSize(int, int);
         virtual void navigate(const std::string &);
+        virtual void setTitle(const std::string &) = 0;
 
         virtual void runCode(const std::string &) = 0;
-        virtual void setTitle(const std::string &) = 0;
+        virtual void runCodeSafe(const std::string &);
 
         virtual void setResizeCallback(const std::function<void(int, int)> &);
         virtual void setNavigateCallback(const std::function<void(const std::string &)> &);
@@ -189,7 +197,7 @@ namespace Soundux
 
             auto code = std::regex_replace(resolve_code, std::regex(R"(\{0\})"), std::to_string(promise.id));
             code = std::regex_replace(code, std::regex(R"(\{1\})"), rtn);
-            runCode(code);
+            runCodeSafe(code);
         }
         template <typename func_t> void addCallback(const std::string &name, func_t function)
         {

@@ -162,6 +162,7 @@ namespace Soundux
                 DispatchMessage(&msg);
             }
         }
+        doQueue();
         return !shouldExit;
     }
     void WebView2::setTitle(const std::string &title)
