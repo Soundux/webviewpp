@@ -83,8 +83,9 @@ namespace Soundux
         gtk_widget_show_all(window);
 
         runCode("window.external={invoke:arg=>window.webkit."
-                "messageHandlers.external.postMessage(arg)};");
-        runCode(setup_code);
+                "messageHandlers.external.postMessage(arg)};",
+                true);
+        runCode(setup_code, true);
 
         return true;
     }
@@ -121,7 +122,7 @@ namespace Soundux
         webkit_settings_set_enable_write_console_messages_to_stdout(settings, enable);
         webkit_settings_set_enable_developer_extras(settings, enable);
     }
-    void WebKit2Gtk::runCode(const std::string &code)
+    void WebKit2Gtk::runCode(const std::string &code, bool inject)
     {
         assert(webview != nullptr);
 
@@ -130,12 +131,18 @@ namespace Soundux
         formattedCode = std::regex_replace(formattedCode, std::regex(R"rgx(\\t)rgx"), R"(\\t)");
 
         // NOLINTNEXTLINE
-        webkit_web_view_run_javascript(WEBKIT_WEB_VIEW(webview), formattedCode.c_str(), nullptr, nullptr, nullptr);
-
-        auto *manager = webkit_web_view_get_user_content_manager(WEBKIT_WEB_VIEW(webview)); // NOLINT
-        webkit_user_content_manager_add_script(
-            manager, webkit_user_script_new(formattedCode.c_str(), WEBKIT_USER_CONTENT_INJECT_TOP_FRAME,
-                                            WEBKIT_USER_SCRIPT_INJECT_AT_DOCUMENT_START, nullptr, nullptr));
+        if (inject)
+        {
+            auto *manager = webkit_web_view_get_user_content_manager(WEBKIT_WEB_VIEW(webview)); // NOLINT
+            webkit_user_content_manager_add_script(
+                manager, webkit_user_script_new(formattedCode.c_str(), WEBKIT_USER_CONTENT_INJECT_ALL_FRAMES,
+                                                WEBKIT_USER_SCRIPT_INJECT_AT_DOCUMENT_START, nullptr, nullptr));
+        }
+        else
+        {
+            // NOLINTNEXTLINE
+            webkit_web_view_run_javascript(WEBKIT_WEB_VIEW(webview), formattedCode.c_str(), nullptr, nullptr, nullptr);
+        }
     }
 } // namespace Soundux
 #endif

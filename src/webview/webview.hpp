@@ -171,8 +171,8 @@ namespace Soundux
         virtual void navigate(const std::string &);
         virtual void setTitle(const std::string &) = 0;
 
-        virtual void runCode(const std::string &) = 0;
         virtual void runCodeSafe(const std::string &);
+        virtual void runCode(const std::string &, bool = false) = 0;
 
         virtual void setResizeCallback(const std::function<void(int, int)> &);
         virtual void setNavigateCallback(const std::function<void(const std::string &)> &);
@@ -219,7 +219,7 @@ namespace Soundux
                 };
 
                 auto code = std::regex_replace(callback_code, std::regex(R"(\{0\})"), name);
-                runCode(code);
+                runCode(code, true);
 
                 callbacks.emplace(name, std::make_unique<asyncCallback>(code, func));
             }
@@ -262,7 +262,7 @@ namespace Soundux
                 };
 
                 auto code = std::regex_replace(callback_code, std::regex(R"(\{0\})"), name);
-                runCode(code);
+                runCode(code, true);
 
                 callbacks.emplace(name, std::make_unique<syncCallback>(code, func));
             }

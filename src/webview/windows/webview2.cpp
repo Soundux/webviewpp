@@ -132,11 +132,10 @@ namespace Soundux
                             }).Get(),
                             &messageReceived);
 
-                        webViewWindow->AddScriptToExecuteOnDocumentCreated(
-                            L"window.external.invoke=arg=>window.chrome.webview.postMessage(arg);", nullptr);
-                        webViewWindow->AddScriptToExecuteOnDocumentCreated(widen(setup_code).c_str(), nullptr);
-
                         initDone = true;
+                        runCode("window.external.invoke=arg=>window.chrome.webview.postMessage(arg);", true);
+                        runCode(setup_code, true);
+
                         onResize(width, height);
 
                         for (auto &fn : runOnInitDone)
@@ -218,19 +217,14 @@ namespace Soundux
             settings->put_AreDefaultContextMenusEnabled(enable);
         }
     }
-    void WebView2::runCode(const std::string &code)
+    void WebView2::runCode(const std::string &code, bool inject)
     {
-        if (!initDone)
-        {
-            runOnInitDone.push_back(
-                [=] { webViewWindow->AddScriptToExecuteOnDocumentCreated(widen(code).c_str(), nullptr); });
-        }
-        else
-        {
-            auto formattedCode = std::regex_replace(code, std::regex(R"rgx(\\")rgx"), R"(\\\")");
-            formattedCode = std::regex_replace(formattedCode, std::regex(R"rgx(\\n)rgx"), R"(\\n)");
-            formattedCode = std::regex_replace(formattedCode, std::regex(R"rgx(\\t)rgx"), R"(\\t)");
+        auto formattedCode = std::regex_replace(code, std::regex(R"rgx(\\")rgx"), R"(\\\")");
+        formattedCode = std::regex_replace(formattedCode, std::regex(R"rgx(\\n)rgx"), R"(\\n)");
+        formattedCode = std::regex_replace(formattedCode, std::regex(R"rgx(\\t)rgx"), R"(\\t)");
 
+        if (inject || !initDone)
+        {
             webViewWindow->ExecuteScript(
                 widen(formattedCode).c_str(),
                 Callback<ICoreWebView2ExecuteScriptCompletedHandler>([]([[maybe_unused]] HRESULT errorCode,
@@ -238,6 +232,11 @@ namespace Soundux
                                                                          -> HRESULT {
                     return S_OK;
                 }).Get());
+        }
+        else
+        {
+            runOnInitDone.push_back(
+                [=] { webViewWindow->AddScriptToExecuteOnDocumentCreated(widen(code).c_str(), nullptr); });
         }
     }
 } // namespace Soundux
