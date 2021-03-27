@@ -124,12 +124,18 @@ namespace Soundux
     void WebKit2Gtk::runCode(const std::string &code)
     {
         assert(webview != nullptr);
-        // NOLINTNEXTLINE
 
         auto formattedCode = std::regex_replace(code, std::regex(R"rgx(\\")rgx"), R"(\\\")");
         formattedCode = std::regex_replace(formattedCode, std::regex(R"rgx(\\n)rgx"), R"(\\n)");
         formattedCode = std::regex_replace(formattedCode, std::regex(R"rgx(\\t)rgx"), R"(\\t)");
+
+        // NOLINTNEXTLINE
         webkit_web_view_run_javascript(WEBKIT_WEB_VIEW(webview), formattedCode.c_str(), nullptr, nullptr, nullptr);
+
+        auto *manager = webkit_web_view_get_user_content_manager(WEBKIT_WEB_VIEW(webview)); // NOLINT
+        webkit_user_content_manager_add_script(
+            manager, webkit_user_script_new(formattedCode.c_str(), WEBKIT_USER_CONTENT_INJECT_TOP_FRAME,
+                                            WEBKIT_USER_SCRIPT_INJECT_AT_DOCUMENT_START, nullptr, nullptr));
     }
 } // namespace Soundux
 #endif
