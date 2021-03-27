@@ -225,6 +225,11 @@ namespace Soundux
 
         if (inject || !initDone)
         {
+            runOnInitDone.push_back(
+                [=] { webViewWindow->AddScriptToExecuteOnDocumentCreated(widen(formattedCode).c_str(), nullptr); });
+        }
+        else
+        {
             webViewWindow->ExecuteScript(
                 widen(formattedCode).c_str(),
                 Callback<ICoreWebView2ExecuteScriptCompletedHandler>([]([[maybe_unused]] HRESULT errorCode,
@@ -232,11 +237,6 @@ namespace Soundux
                                                                          -> HRESULT {
                     return S_OK;
                 }).Get());
-        }
-        else
-        {
-            runOnInitDone.push_back(
-                [=] { webViewWindow->AddScriptToExecuteOnDocumentCreated(widen(code).c_str(), nullptr); });
         }
     }
 } // namespace Soundux
