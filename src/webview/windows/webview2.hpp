@@ -34,9 +34,9 @@ namespace Soundux
         void setSize(int width, int height) override;
 
         void enableDevTools(bool enable) override;
-        void runCode(const std::string &code) override;
         void navigate(const std::string &url) override;
         void setTitle(const std::string &title) override;
+        void runCode(const std::string &code, bool inject = false) override;
     };
 } // namespace Soundux
 #endif
