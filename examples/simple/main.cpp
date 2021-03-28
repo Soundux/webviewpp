@@ -14,10 +14,7 @@ int main()
         return someInt * 10;
     });
     webview.navigate("https://ddg.gg");
-
-    while (webview.run())
-    {
-    }
+    webview.run();
 
     return 0;
 }
