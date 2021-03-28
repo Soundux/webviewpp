@@ -37,6 +37,30 @@ namespace Soundux
         webview->onExit();
     }
 
+    void WebKit2Gtk::runThreadSafe(std::function<void()> func)
+    {
+        auto *call = new ThreadSafeCall{func};
+
+        g_idle_add(
+            +[](gpointer data) -> gboolean {
+                auto *threadSafeCall = reinterpret_cast<ThreadSafeCall *>(data);
+                threadSafeCall->func();
+                delete threadSafeCall;
+                return FALSE;
+            },
+            call);
+    }
+
+    void WebKit2Gtk::hide()
+    {
+        gtk_widget_hide(window);
+    }
+
+    void WebKit2Gtk::show()
+    {
+        gtk_widget_show(window);
+    }
+
     gboolean WebKit2Gtk::contextMenu([[maybe_unused]] WebKitWebView *webkitwebview, [[maybe_unused]] GtkWidget *widget,
                                      [[maybe_unused]] WebKitHitTestResultContext *result,
                                      [[maybe_unused]] gboolean with_keyboard, gpointer arg)
@@ -49,10 +73,23 @@ namespace Soundux
         return 1;
     }
 
+    gboolean WebKit2Gtk::onClose([[maybe_unused]] GtkWidget *widget, [[maybe_unused]] GdkEvent *event, gpointer data)
+    {
+        auto *webview = reinterpret_cast<WebKit2Gtk *>(data);
+        if (webview->shouldHideOnExit)
+        {
+            webview->hide();
+            return TRUE;
+        }
+
+        return FALSE;
+    }
+
     bool WebKit2Gtk::setup(int width, int height)
     {
         this->width = width;
         this->height = height;
+
         if (gtk_init_check(nullptr, nullptr) == 0)
         {
             return false;
@@ -60,7 +97,7 @@ namespace Soundux
 
         window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
         gtk_window_set_resizable(GTK_WINDOW(window), true);              // NOLINT
-        gtk_widget_set_size_request(GTK_WIDGET(window), width, height);  // NOLINT
+        gtk_window_set_default_size(GTK_WINDOW(window), width, height);  // NOLINT
         gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER); // NOLINT
 
         GtkWidget *scrollView = gtk_scrolled_window_new(nullptr, nullptr);
@@ -77,24 +114,25 @@ namespace Soundux
         g_signal_connect(G_OBJECT(webview), "load-changed", G_CALLBACK(loadChanged), this); // NOLINT
         g_signal_connect(G_OBJECT(webview), "context-menu", G_CALLBACK(contextMenu), this); // NOLINT
         g_signal_connect(window, "configure-event", G_CALLBACK(resize), this);              // NOLINT
+        g_signal_connect(window, "delete_event", G_CALLBACK(onClose), this);                // NOLINT
         g_signal_connect(window, "destroy", G_CALLBACK(destroy), this);                     // NOLINT
 
         gtk_widget_grab_focus(GTK_WIDGET(webview)); // NOLINT
         gtk_widget_show_all(window);
 
-        GdkRGBA color = {255 / 255.0, 255 / 255.0, 255 / 255.0, 255 / 255.0};
-        webkit_web_view_set_background_color(WEBKIT_WEB_VIEW(webview), &color); // NOLINT
-
         runCode("window.external={invoke:arg=>window.webkit."
-                "messageHandlers.external.postMessage(arg)};");
-        runCode(setup_code);
+                "messageHandlers.external.postMessage(arg)};",
+                true);
+        runCode(setup_code, true);
 
         return true;
     }
-    bool WebKit2Gtk::run()
+    void WebKit2Gtk::run()
     {
-        gtk_main_iteration_do(true);
-        return !shouldExit;
+        while (!shouldExit)
+        {
+            gtk_main_iteration_do(true);
+        }
     }
     void WebKit2Gtk::setTitle(const std::string &title)
     {
@@ -122,10 +160,27 @@ namespace Soundux
         webkit_settings_set_enable_write_console_messages_to_stdout(settings, enable);
         webkit_settings_set_enable_developer_extras(settings, enable);
     }
-    void WebKit2Gtk::runCode(const std::string &code)
+    void WebKit2Gtk::runCode(const std::string &code, bool inject)
     {
         assert(webview != nullptr);
-        webkit_web_view_run_javascript(WEBKIT_WEB_VIEW(webview), code.c_str(), nullptr, nullptr, nullptr); // NOLINT
+
+        auto formattedCode = std::regex_replace(code, std::regex(R"rgx(\\")rgx"), R"(\\\")");
+        formattedCode = std::regex_replace(formattedCode, std::regex(R"rgx(\\n)rgx"), R"(\\n)");
+        formattedCode = std::regex_replace(formattedCode, std::regex(R"rgx(\\t)rgx"), R"(\\t)");
+
+        // NOLINTNEXTLINE
+        if (inject)
+        {
+            auto *manager = webkit_web_view_get_user_content_manager(WEBKIT_WEB_VIEW(webview)); // NOLINT
+            webkit_user_content_manager_add_script(
+                manager, webkit_user_script_new(formattedCode.c_str(), WEBKIT_USER_CONTENT_INJECT_ALL_FRAMES,
+                                                WEBKIT_USER_SCRIPT_INJECT_AT_DOCUMENT_START, nullptr, nullptr));
+        }
+        else
+        {
+            // NOLINTNEXTLINE
+            webkit_web_view_run_javascript(WEBKIT_WEB_VIEW(webview), formattedCode.c_str(), nullptr, nullptr, nullptr);
+        }
     }
 } // namespace Soundux
 #endif

@@ -132,11 +132,10 @@ namespace Soundux
                             }).Get(),
                             &messageReceived);
 
-                        webViewWindow->AddScriptToExecuteOnDocumentCreated(
-                            L"window.external.invoke=arg=>window.chrome.webview.postMessage(arg);", nullptr);
-                        webViewWindow->AddScriptToExecuteOnDocumentCreated(widen(setup_code).c_str(), nullptr);
-
                         initDone = true;
+                        runCode("window.external.invoke=arg=>window.chrome.webview.postMessage(arg);", true);
+                        runCode(setup_code, true);
+
                         onResize(width, height);
 
                         for (auto &fn : runOnInitDone)
@@ -152,17 +151,16 @@ namespace Soundux
 
         return !FAILED(envResult);
     }
-    bool WebView2::run()
+    void WebView2::run()
     {
-        if (PeekMessage(&msg, nullptr, 0, 0, 1) != -1)
+        while (!shouldExit)
         {
-            if (msg.message)
+            if (GetMessage(&msg, nullptr, 0, 0))
             {
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
             }
         }
-        return !shouldExit;
     }
     void WebView2::setTitle(const std::string &title)
     {
@@ -217,23 +215,42 @@ namespace Soundux
             settings->put_AreDefaultContextMenusEnabled(enable);
         }
     }
-    void WebView2::runCode(const std::string &code)
+    void WebView2::runCode(const std::string &code, bool inject)
     {
-        if (!initDone)
+        auto formattedCode = std::regex_replace(code, std::regex(R"rgx(\\")rgx"), R"(\\\")");
+        formattedCode = std::regex_replace(formattedCode, std::regex(R"rgx(\\n)rgx"), R"(\\n)");
+        formattedCode = std::regex_replace(formattedCode, std::regex(R"rgx(\\t)rgx"), R"(\\t)");
+
+        if (inject || !initDone)
         {
             runOnInitDone.push_back(
-                [=] { webViewWindow->AddScriptToExecuteOnDocumentCreated(widen(code).c_str(), nullptr); });
+                [=] { webViewWindow->AddScriptToExecuteOnDocumentCreated(widen(formattedCode).c_str(), nullptr); });
         }
         else
         {
             webViewWindow->ExecuteScript(
-                widen(std::regex_replace(code, std::regex(R"rgx(\\)rgx"), R"(\\)")).c_str(),
+                widen(formattedCode).c_str(),
                 Callback<ICoreWebView2ExecuteScriptCompletedHandler>([]([[maybe_unused]] HRESULT errorCode,
                                                                         [[maybe_unused]] LPCWSTR resultObjectAsJson)
                                                                          -> HRESULT {
                     return S_OK;
                 }).Get());
         }
+    }
+
+    void WebView2::hide()
+    {
+        ShowWindow(hwnd, SW_HIDE);
+    }
+
+    void WebView2::show()
+    {
+        ShowWindow(hwnd, SW_SHOW);
+    }
+
+    void WebView2::runThreadSafe(std::function<void()> func)
+    {
+        // TODO(curve): Implement
     }
 } // namespace Soundux
 #endif

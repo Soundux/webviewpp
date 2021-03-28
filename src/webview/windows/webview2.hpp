@@ -28,15 +28,17 @@ namespace Soundux
         void onResize(int width, int height) override;
 
       public:
-        bool run() override;
+        void run() override;
+        void hide() override;
+        void show() override;
         bool setup(int width, int height) override;
-
         void setSize(int width, int height) override;
 
         void enableDevTools(bool enable) override;
-        void runCode(const std::string &code) override;
         void navigate(const std::string &url) override;
         void setTitle(const std::string &title) override;
+        void runThreadSafe(std::function<void()> func) override;
+        void runCode(const std::string &code, bool inject = false) override;
     };
 } // namespace Soundux
 #endif
