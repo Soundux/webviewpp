@@ -18,7 +18,8 @@ namespace Soundux
     }
     std::string narrow(const std::wstring &wstr)
     {
-        int count = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), wstr.length(), nullptr, 0, nullptr, nullptr);
+        auto count = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), static_cast<int>(wstr.length()), nullptr, 0, nullptr,
+                                         nullptr);
         std::string str(count, 0);
         WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], count, nullptr, nullptr);
         return str;
@@ -172,7 +173,7 @@ namespace Soundux
     {
         while (!shouldExit)
         {
-            if (GetMessage(&msg, hwnd, 0, 0))
+            if (GetMessage(&msg, nullptr, 0, 0))
             {
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
