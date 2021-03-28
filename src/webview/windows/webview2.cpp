@@ -151,18 +151,16 @@ namespace Soundux
 
         return !FAILED(envResult);
     }
-    bool WebView2::run()
+    void WebView2::run()
     {
-        if (PeekMessage(&msg, nullptr, 0, 0, 1) != -1)
+        while (!shouldExit)
         {
-            if (msg.message)
+            if (GetMessage(&msg, nullptr, 0, 0))
             {
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
             }
         }
-        doQueue();
-        return !shouldExit;
     }
     void WebView2::setTitle(const std::string &title)
     {
@@ -238,6 +236,21 @@ namespace Soundux
                     return S_OK;
                 }).Get());
         }
+    }
+
+    void WebView2::hide()
+    {
+        ShowWindow(hwnd, SW_HIDE);
+    }
+
+    void WebView2::show()
+    {
+        ShowWindow(hwnd, SW_SHOW);
+    }
+
+    void WebView2::runThreadSafe(std::function<void()> func)
+    {
+        // TODO(curve): Implement
     }
 } // namespace Soundux
 #endif
