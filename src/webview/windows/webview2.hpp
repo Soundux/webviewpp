@@ -10,8 +10,6 @@
 
 namespace Soundux
 {
-    using namespace Microsoft::WRL;
-
     class WebView2 : public WebView
     {
         std::vector<std::function<void()>> runOnInitDone;

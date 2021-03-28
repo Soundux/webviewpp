@@ -94,60 +94,61 @@ namespace Soundux
         SetFocus(hwnd);
 
         auto envResult = CreateCoreWebView2Environment(
-            Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>([&](auto res,
-                                                                                     ICoreWebView2Environment *env)
-                                                                                     -> HRESULT {
-                auto controllerResult = env->CreateCoreWebView2Controller(
-                    hwnd,
-                    Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>([&](auto _res,
-                                                                                            ICoreWebView2Controller *
-                                                                                                controller) -> HRESULT {
-                        if (FAILED(_res))
-                        {
-                            return res;
-                        }
+            Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
+                [&](auto res, ICoreWebView2Environment *env) -> HRESULT {
+                    auto controllerResult = env->CreateCoreWebView2Controller(
+                        hwnd, Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
+                                  [&](auto _res, ICoreWebView2Controller *controller) -> HRESULT {
+                                      if (FAILED(_res))
+                                      {
+                                          return res;
+                                      }
 
-                        if (controller)
-                        {
-                            webViewController = controller;
-                            webViewController->get_CoreWebView2(&webViewWindow);
-                        }
+                                      if (controller)
+                                      {
+                                          webViewController = controller;
+                                          webViewController->get_CoreWebView2(&webViewWindow);
+                                      }
 
-                        EventRegistrationToken messageReceived;
-                        webViewWindow->add_WebMessageReceived(
-                            Callback<ICoreWebView2WebMessageReceivedEventHandler>([this]([[maybe_unused]] auto *webview,
-                                                                                         auto *args) {
-                                LPWSTR raw = nullptr;
-                                args->TryGetWebMessageAsString(&raw);
+                                      EventRegistrationToken messageReceived;
+                                      webViewWindow->add_WebMessageReceived(
+                                          Microsoft::WRL::Callback<ICoreWebView2WebMessageReceivedEventHandler>(
+                                              [this]([[maybe_unused]] auto *webview, auto *args) {
+                                                  LPWSTR raw = nullptr;
+                                                  args->TryGetWebMessageAsString(&raw);
 
-                                auto message = narrow(raw);
+                                                  auto message = narrow(raw);
 
-                                if (!callbacks.empty())
-                                {
-                                    WebView::resolveCallback(message);
-                                }
+                                                  if (!callbacks.empty())
+                                                  {
+                                                      WebView::resolveCallback(message);
+                                                  }
 
-                                CoTaskMemFree(raw);
-                                return S_OK;
-                            }).Get(),
-                            &messageReceived);
+                                                  CoTaskMemFree(raw);
+                                                  return S_OK;
+                                              })
+                                              .Get(),
+                                          &messageReceived);
 
-                        initDone = true;
-                        runCode("window.external.invoke=arg=>window.chrome.webview.postMessage(arg);", true);
-                        runCode(setup_code, true);
+                                      initDone = true;
+                                      runCode("window.external.invoke=arg=>window.chrome.webview.postMessage(arg);",
+                                              true);
+                                      runCode(setup_code, true);
 
-                        onResize(width, height);
+                                      onResize(width, height);
 
-                        for (auto &fn : runOnInitDone)
-                        {
-                            fn();
-                        }
-                        runOnInitDone.clear();
+                                      for (auto &fn : runOnInitDone)
+                                      {
+                                          fn();
+                                      }
+                                      runOnInitDone.clear();
 
-                        return S_OK;
-                    }).Get());
-                return controllerResult;
-            }).Get());
+                                      return S_OK;
+                                  })
+                                  .Get());
+                    return controllerResult;
+                })
+                .Get());
 
         return !FAILED(envResult);
     }
@@ -230,11 +231,11 @@ namespace Soundux
         {
             webViewWindow->ExecuteScript(
                 widen(formattedCode).c_str(),
-                Callback<ICoreWebView2ExecuteScriptCompletedHandler>([]([[maybe_unused]] HRESULT errorCode,
-                                                                        [[maybe_unused]] LPCWSTR resultObjectAsJson)
-                                                                         -> HRESULT {
-                    return S_OK;
-                }).Get());
+                Microsoft::WRL::Callback<ICoreWebView2ExecuteScriptCompletedHandler>(
+                    []([[maybe_unused]] HRESULT errorCode, [[maybe_unused]] LPCWSTR resultObjectAsJson) -> HRESULT {
+                        return S_OK;
+                    })
+                    .Get());
         }
     }
 
