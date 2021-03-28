@@ -264,6 +264,7 @@ namespace Soundux
     void WebView2::show()
     {
         ShowWindow(hwnd, SW_SHOW);
+        SetFocus(hwnd);
     }
 
     void WebView2::runThreadSafe(std::function<void()> func)
