@@ -40,7 +40,7 @@ namespace Soundux
 
             const auto &callback = callbacks.at(name);
 
-            auto *syncPtr = dynamic_cast<syncCallback *>(callback.get());
+            auto *syncPtr = dynamic_cast<SyncCallback *>(callback.get());
             if (syncPtr)
             {
                 auto code = std::regex_replace(resolve_code, std::regex(R"(\{0\})"), std::to_string(seq));
@@ -49,7 +49,7 @@ namespace Soundux
             }
             else
             {
-                dynamic_cast<asyncCallback *>(callback.get())->function(params, seq);
+                dynamic_cast<AsyncCallback *>(callback.get())->function(params, seq);
             }
         }
     }
@@ -73,22 +73,10 @@ namespace Soundux
     }
     void WebView::runCodeSafe(const std::string &code)
     {
-        std::lock_guard lock(queueMutex);
-        codeQueue.emplace(code);
-        checkQueue = true;
+        runThreadSafe([=] { runCode(code); });
     }
-    void WebView::doQueue()
+    void WebView::hideOnClose(bool state)
     {
-        if (checkQueue)
-        {
-            std::lock_guard lock(queueMutex);
-            while (!codeQueue.empty())
-            {
-                auto first = std::move(codeQueue.front());
-                codeQueue.pop();
-                runCode(first);
-            }
-            checkQueue = false;
-        }
+        shouldHideOnExit = state;
     }
 } // namespace Soundux

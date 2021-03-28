@@ -80,49 +80,49 @@ namespace Soundux
 
     class WebView
     {
-        struct callback
+      protected:
+        struct ThreadSafeCall
+        {
+            std::function<void()> func;
+        };
+        struct Callback
         {
             std::string code;
 
-            callback(std::string code) : code(std::move(code)) {}
-            virtual ~callback() = default;
+            Callback(std::string code) : code(std::move(code)) {}
+            virtual ~Callback() = default;
         };
-        struct syncCallback : callback
+        struct SyncCallback : Callback
         {
             std::function<std::string(const nlohmann::json &)> function;
 
-            syncCallback(const std::string &code, std::function<std::string(const nlohmann::json &)> function)
-                : callback(code), function(std::move(function))
+            SyncCallback(const std::string &code, std::function<std::string(const nlohmann::json &)> function)
+                : Callback(code), function(std::move(function))
             {
             }
-            ~syncCallback() override = default;
+            ~SyncCallback() override = default;
         };
-        struct asyncCallback : callback
+        struct AsyncCallback : Callback
         {
             std::function<void(const nlohmann::json &, const std::uint32_t &)> function;
 
-            asyncCallback(const std::string &code,
+            AsyncCallback(const std::string &code,
                           std::function<void(const nlohmann::json &, const std::uint32_t &)> function)
-                : callback(code), function(std::move(function))
+                : Callback(code), function(std::move(function))
             {
             }
-            ~asyncCallback() override = default;
+            ~AsyncCallback() override = default;
         };
 
-      protected:
         int width;
         int height;
         bool devTools;
         std::string url;
         bool shouldExit;
-
-        std::mutex queueMutex;
-        std::atomic<bool> checkQueue;
-        std::queue<std::string> codeQueue;
-
+        bool shouldHideOnExit = false;
         std::function<void(int, int)> resizeCallback;
         std::function<void(const std::string &)> navigateCallback;
-        std::map<std::string, std::unique_ptr<callback>> callbacks;
+        std::map<std::string, std::unique_ptr<Callback>> callbacks;
 
         static inline std::string callback_code = R"js(
           async function {0}(...param)
@@ -150,7 +150,6 @@ namespace Soundux
         )js";
 
         virtual void onExit();
-        virtual void doQueue();
         virtual void onResize(int, int);
         virtual void onNavigate(const std::string &);
         virtual void resolveCallback(const std::string &);
@@ -164,10 +163,14 @@ namespace Soundux
         virtual bool getDevToolsEnabled();
         virtual void enableDevTools(bool);
 
-        virtual bool run() = 0;
+        virtual void run() = 0;
+        virtual void show() = 0;
+        virtual void hide() = 0;
         virtual bool setup(int, int) = 0;
+        virtual void runThreadSafe(std::function<void()>) = 0;
 
         virtual void setSize(int, int);
+        virtual void hideOnClose(bool);
         virtual void navigate(const std::string &);
         virtual void setTitle(const std::string &) = 0;
 
@@ -221,7 +224,7 @@ namespace Soundux
                 auto code = std::regex_replace(callback_code, std::regex(R"(\{0\})"), name);
                 runCode(code, true);
 
-                callbacks.emplace(name, std::make_unique<asyncCallback>(code, func));
+                callbacks.emplace(name, std::make_unique<AsyncCallback>(code, func));
             }
             else
             {
@@ -264,7 +267,7 @@ namespace Soundux
                 auto code = std::regex_replace(callback_code, std::regex(R"(\{0\})"), name);
                 runCode(code, true);
 
-                callbacks.emplace(name, std::make_unique<syncCallback>(code, func));
+                callbacks.emplace(name, std::make_unique<SyncCallback>(code, func));
             }
         }
     };
