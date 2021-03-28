@@ -3,6 +3,8 @@
 
 namespace Soundux
 {
+    static constexpr auto WM_CALL = WM_USER + 2;
+
     std::wstring widen(const std::string &s)
     {
         int wsz = MultiByteToWideChar(65001, 0, s.c_str(), -1, nullptr, 0);
@@ -35,9 +37,23 @@ namespace Soundux
             }
             break;
         case WM_CLOSE:
-            DestroyWindow(hwnd);
-            webView->onExit();
+            if (webView->shouldHideOnExit)
+            {
+                webView->hide();
+                return 0;
+            }
+            else
+            {
+                DestroyWindow(hwnd);
+                webView->onExit();
+            }
             break;
+        case WM_CALL: {
+            auto *call = reinterpret_cast<ThreadSafeCall *>(wParam);
+            call->func();
+            delete call;
+        }
+        break;
         default:
             return DefWindowProc(hwnd, msg, wParam, lParam);
         }
@@ -156,7 +172,7 @@ namespace Soundux
     {
         while (!shouldExit)
         {
-            if (GetMessage(&msg, nullptr, 0, 0))
+            if (GetMessage(&msg, hwnd, 0, 0))
             {
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
@@ -251,7 +267,8 @@ namespace Soundux
 
     void WebView2::runThreadSafe(std::function<void()> func)
     {
-        // TODO(curve): Implement
+        auto *call = new ThreadSafeCall{func};
+        PostMessage(hwnd, WM_CALL, reinterpret_cast<ULONG_PTR>(call), 0);
     }
 } // namespace Soundux
 #endif
