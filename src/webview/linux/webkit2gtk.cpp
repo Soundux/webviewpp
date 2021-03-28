@@ -37,6 +37,30 @@ namespace Soundux
         webview->onExit();
     }
 
+    void WebKit2Gtk::runThreadSafe(std::function<void()> func)
+    {
+        auto *call = new ThreadSafeCall{func};
+
+        g_idle_add(
+            +[](gpointer data) -> gboolean {
+                auto *threadSafeCall = reinterpret_cast<ThreadSafeCall *>(data);
+                threadSafeCall->func();
+                delete threadSafeCall;
+                return FALSE;
+            },
+            call);
+    }
+
+    void WebKit2Gtk::hide()
+    {
+        gtk_widget_hide(window);
+    }
+
+    void WebKit2Gtk::show()
+    {
+        gtk_widget_show(window);
+    }
+
     gboolean WebKit2Gtk::contextMenu([[maybe_unused]] WebKitWebView *webkitwebview, [[maybe_unused]] GtkWidget *widget,
                                      [[maybe_unused]] WebKitHitTestResultContext *result,
                                      [[maybe_unused]] gboolean with_keyboard, gpointer arg)
@@ -49,10 +73,23 @@ namespace Soundux
         return 1;
     }
 
+    gboolean WebKit2Gtk::onClose([[maybe_unused]] GtkWidget *widget, [[maybe_unused]] GdkEvent *event, gpointer data)
+    {
+        auto *webview = reinterpret_cast<WebKit2Gtk *>(data);
+        if (webview->shouldHideOnExit)
+        {
+            webview->hide();
+            return TRUE;
+        }
+
+        return FALSE;
+    }
+
     bool WebKit2Gtk::setup(int width, int height)
     {
         this->width = width;
         this->height = height;
+
         if (gtk_init_check(nullptr, nullptr) == 0)
         {
             return false;
@@ -77,6 +114,7 @@ namespace Soundux
         g_signal_connect(G_OBJECT(webview), "load-changed", G_CALLBACK(loadChanged), this); // NOLINT
         g_signal_connect(G_OBJECT(webview), "context-menu", G_CALLBACK(contextMenu), this); // NOLINT
         g_signal_connect(window, "configure-event", G_CALLBACK(resize), this);              // NOLINT
+        g_signal_connect(window, "delete_event", G_CALLBACK(onClose), this);                // NOLINT
         g_signal_connect(window, "destroy", G_CALLBACK(destroy), this);                     // NOLINT
 
         gtk_widget_grab_focus(GTK_WIDGET(webview)); // NOLINT
@@ -89,12 +127,12 @@ namespace Soundux
 
         return true;
     }
-    bool WebKit2Gtk::run()
+    void WebKit2Gtk::run()
     {
-        gtk_main_iteration_do(true);
-        doQueue();
-
-        return !shouldExit;
+        while (!shouldExit)
+        {
+            gtk_main_iteration_do(true);
+        }
     }
     void WebKit2Gtk::setTitle(const std::string &title)
     {

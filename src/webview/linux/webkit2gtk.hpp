@@ -18,13 +18,16 @@ namespace Soundux
         static gboolean resize(WebKitWebView *, GdkEvent *, gpointer);
         static void destroy(GtkWidget *, gpointer);
 
+        static gboolean onClose(GtkWidget *, GdkEvent *, gpointer);
         static gboolean contextMenu(WebKitWebView *, GtkWidget *, WebKitHitTestResultContext *, gboolean, gpointer);
 
       public:
-        bool run() override;
+        void run() override;
+        void hide() override;
+        void show() override;
         bool setup(int width, int height) override;
-
         void setSize(int width, int height) override;
+        void runThreadSafe(std::function<void()> func) override;
 
         void enableDevTools(bool enable) override;
         void navigate(const std::string &url) override;
