@@ -1,4 +1,5 @@
 #if defined(_WIN32)
+#pragma once
 #include "../webview.hpp"
 #include <mutex>
 #include <wil/com.h>
