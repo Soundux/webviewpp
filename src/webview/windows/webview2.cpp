@@ -135,13 +135,14 @@ namespace Soundux
 
                                       EventRegistrationToken navigationCompleted;
                                       webViewWindow->add_NavigationCompleted(
-                                          Microsoft::WRL::Callback<ICoreWebView2NavigationCompletedEventHandler>().Get(
+                                          Microsoft::WRL::Callback<ICoreWebView2NavigationCompletedEventHandler>(
                                               [this](auto *webview, auto *args) {
                                                   wil::unique_cotaskmem_string uri;
                                                   webview->get_Source(&uri);
                                                   onNavigate(narrow(uri.get()));
                                                   return S_OK;
-                                              }),
+                                              })
+                                              .Get(),
                                           &navigationCompleted);
 
                                       EventRegistrationToken messageReceived;
