@@ -184,6 +184,10 @@ namespace Soundux
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
             }
+            else
+            {
+                break;
+            }
         }
     }
     void WebView2::setTitle(const std::string &title)
