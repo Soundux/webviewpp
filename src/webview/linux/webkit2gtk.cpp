@@ -18,8 +18,11 @@ namespace Soundux
     void WebKit2Gtk::loadChanged(WebKitWebView *webkitwebview, [[maybe_unused]] WebKitLoadEvent event,
                                  [[maybe_unused]] gpointer arg)
     {
-        auto *webview = reinterpret_cast<WebKit2Gtk *>(arg);
-        webview->onNavigate(webkit_web_view_get_uri(webkitwebview));
+        if (event == WEBKIT_LOAD_FINISHED)
+        {
+            auto *webview = reinterpret_cast<WebKit2Gtk *>(arg);
+            webview->onNavigate(webkit_web_view_get_uri(webkitwebview));
+        }
     }
 
     gboolean WebKit2Gtk::resize([[maybe_unused]] WebKitWebView *webkitwebview, GdkEvent *event, gpointer arg)
