@@ -120,6 +120,7 @@ namespace Soundux
         std::string url;
         bool shouldExit;
         bool shouldHideOnExit = false;
+        std::function<void()> closeCallback;
         std::function<void(int, int)> resizeCallback;
         std::function<void(const std::string &)> navigateCallback;
         std::map<std::string, std::unique_ptr<Callback>> callbacks;
@@ -150,6 +151,7 @@ namespace Soundux
         )js";
 
         virtual void onExit();
+        virtual void onClosed();
         virtual void onResize(int, int);
         virtual void onNavigate(const std::string &);
         virtual void resolveCallback(const std::string &);
@@ -177,6 +179,7 @@ namespace Soundux
         virtual void runCodeSafe(const std::string &);
         virtual void runCode(const std::string &, bool = false) = 0;
 
+        virtual void setCloseCallback(const std::function<void()> &);
         virtual void setResizeCallback(const std::function<void(int, int)> &);
         virtual void setNavigateCallback(const std::function<void(const std::string &)> &);
 

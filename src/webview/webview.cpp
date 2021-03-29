@@ -79,4 +79,17 @@ namespace Soundux
     {
         shouldHideOnExit = state;
     }
+
+    void WebView::onClosed()
+    {
+        if (closeCallback)
+        {
+            closeCallback();
+        }
+    }
+
+    void WebView::setCloseCallback(const std::function<void()> &func)
+    {
+        closeCallback = func;
+    }
 } // namespace Soundux

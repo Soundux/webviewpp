@@ -76,6 +76,8 @@ namespace Soundux
     gboolean WebKit2Gtk::onClose([[maybe_unused]] GtkWidget *widget, [[maybe_unused]] GdkEvent *event, gpointer data)
     {
         auto *webview = reinterpret_cast<WebKit2Gtk *>(data);
+        webview->onClosed();
+
         if (webview->shouldHideOnExit)
         {
             webview->hide();
