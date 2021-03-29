@@ -53,11 +53,13 @@ namespace Soundux
 
     void WebKit2Gtk::hide()
     {
+        isHidden = true;
         gtk_widget_hide(window);
     }
 
     void WebKit2Gtk::show()
     {
+        isHidden = false;
         gtk_widget_show(window);
     }
 

@@ -268,11 +268,13 @@ namespace Soundux
 
     void WebView2::hide()
     {
+        isHidden = true;
         ShowWindow(hwnd, SW_HIDE);
     }
 
     void WebView2::show()
     {
+        isHidden = false;
         ShowWindow(hwnd, SW_SHOW);
         SetFocus(hwnd);
     }

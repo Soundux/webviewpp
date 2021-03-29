@@ -92,4 +92,9 @@ namespace Soundux
     {
         closeCallback = func;
     }
+
+    bool WebView::getIsHidden()
+    {
+        return isHidden;
+    }
 } // namespace Soundux

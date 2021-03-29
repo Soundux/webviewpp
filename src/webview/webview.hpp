@@ -119,6 +119,7 @@ namespace Soundux
         bool devTools;
         std::string url;
         bool shouldExit;
+        bool isHidden = false;
         bool shouldHideOnExit = false;
         std::function<void()> closeCallback;
         std::function<void(int, int)> resizeCallback;
@@ -164,6 +165,7 @@ namespace Soundux
 
         virtual bool getDevToolsEnabled();
         virtual void enableDevTools(bool);
+        virtual bool getIsHidden();
 
         virtual void run() = 0;
         virtual void show() = 0;
