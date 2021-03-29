@@ -143,8 +143,10 @@ namespace Soundux
         std::string url;
         bool shouldExit;
         bool isHidden = false;
+        static std::uint64_t seq;
         bool shouldHideOnExit = false;
         std::function<void()> closeCallback;
+        std::function<void()> whenAllReadyCallback;
         std::function<void(int, int)> resizeCallback;
         std::function<void(const std::string &)> navigateCallback;
         std::map<std::string, std::unique_ptr<Callback>> callbacks;
@@ -213,6 +215,7 @@ namespace Soundux
         virtual void runCodeSafe(const std::string &);
         virtual void runCode(const std::string &, bool = false) = 0;
 
+        virtual void whenAllReady(const std::function<void()> &);
         virtual void setCloseCallback(const std::function<void()> &);
         virtual void setResizeCallback(const std::function<void(int, int)> &);
         virtual void setNavigateCallback(const std::function<void(const std::string &)> &);
@@ -243,7 +246,6 @@ namespace Soundux
         template <typename rtn_t, typename... T>
         [[nodiscard]] std::shared_ptr<Future<rtn_t>> callJS(const std::string &function, const T &...parameters)
         {
-            static std::uint64_t seq = 0;
             auto funcCall = function + "(";
             static auto unpackArgsFn = [&](const auto &arg) {
                 if constexpr (traits::is_optional<std::decay_t<decltype(arg)>>::value)
@@ -274,8 +276,9 @@ namespace Soundux
                 funcCall += ")";
             }
 
+            seq++;
             auto rtn = std::make_shared<Future<rtn_t>>();
-            nativeCalls.emplace(++seq, [rtn](const nlohmann::json &j) { rtn->resolve(j.get<rtn_t>()); });
+            nativeCalls.emplace(seq, [rtn](const nlohmann::json &j) { rtn->resolve(j.get<rtn_t>()); });
 
             auto code = std::regex_replace(native_code, std::regex(R"(\{0\})"), std::to_string(seq));
             code = std::regex_replace(code, std::regex(R"(\{1\})"), funcCall);

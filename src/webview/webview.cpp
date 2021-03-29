@@ -1,9 +1,11 @@
 #include "webview.hpp"
+#include <cstdint>
 #include <memory>
 #include <string>
 
 namespace Soundux
 {
+    std::uint64_t WebView::seq = 0;
     void WebView::setSize(int width, int height)
     {
         this->width = width;
@@ -48,6 +50,13 @@ namespace Soundux
                 else
                 {
                     nativeCalls.erase(seq);
+                }
+                if (nativeCalls.empty())
+                {
+                    if (whenAllReadyCallback)
+                    {
+                        whenAllReadyCallback();
+                    }
                 }
             }
             else
@@ -113,5 +122,10 @@ namespace Soundux
     bool WebView::getIsHidden()
     {
         return isHidden;
+    }
+
+    void WebView::whenAllReady(const std::function<void()> &func)
+    {
+        whenAllReadyCallback = func;
     }
 } // namespace Soundux
