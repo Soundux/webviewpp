@@ -27,6 +27,7 @@ namespace Soundux
 
       public:
         void run() override;
+        void exit() override;
         void hide() override;
         void show() override;
         bool setup(int width, int height) override;

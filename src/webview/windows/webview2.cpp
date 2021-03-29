@@ -50,6 +50,11 @@ namespace Soundux
                 webView->onExit();
             }
             break;
+        case WM_QUIT:
+            webView->onClosed();
+            DestroyWindow(hwnd);
+            webView->onExit();
+
         case WM_CALL: {
             auto *call = reinterpret_cast<ThreadSafeCall *>(wParam);
             call->func();
@@ -266,6 +271,11 @@ namespace Soundux
     {
         ShowWindow(hwnd, SW_SHOW);
         SetFocus(hwnd);
+    }
+
+    void WebView2::exit()
+    {
+        PostMessage(hwnd, WM_QUIT, 0, 0);
     }
 
     void WebView2::runThreadSafe(std::function<void()> func)

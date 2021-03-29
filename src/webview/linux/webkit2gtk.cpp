@@ -184,5 +184,9 @@ namespace Soundux
             webkit_web_view_run_javascript(WEBKIT_WEB_VIEW(webview), formattedCode.c_str(), nullptr, nullptr, nullptr);
         }
     }
+    void WebKit2Gtk::exit()
+    {
+        gtk_widget_destroy(reinterpret_cast<GtkWidget *>(window));
+    }
 } // namespace Soundux
 #endif

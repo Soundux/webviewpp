@@ -25,6 +25,7 @@ namespace Soundux
         void run() override;
         void hide() override;
         void show() override;
+        void exit() override;
         bool setup(int width, int height) override;
         void setSize(int width, int height) override;
         void runThreadSafe(std::function<void()> func) override;

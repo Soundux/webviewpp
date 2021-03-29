@@ -168,6 +168,7 @@ namespace Soundux
         virtual void run() = 0;
         virtual void show() = 0;
         virtual void hide() = 0;
+        virtual void exit() = 0;
         virtual bool setup(int, int) = 0;
         virtual void runThreadSafe(std::function<void()>) = 0;
 
