@@ -275,7 +275,7 @@ namespace Soundux
             }
 
             auto rtn = std::make_shared<Future<rtn_t>>();
-            nativeCalls.emplace(seq, [rtn](const nlohmann::json &j) { rtn->resolve(j.get<rtn_t>()); });
+            nativeCalls.emplace(++seq, [rtn](const nlohmann::json &j) { rtn->resolve(j.get<rtn_t>()); });
 
             auto code = std::regex_replace(native_code, std::regex(R"(\{0\})"), std::to_string(seq));
             code = std::regex_replace(code, std::regex(R"(\{1\})"), funcCall);
