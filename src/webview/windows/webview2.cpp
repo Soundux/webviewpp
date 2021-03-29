@@ -38,7 +38,7 @@ namespace Soundux
             }
             break;
         case WM_CLOSE:
-            webview->onClosed();
+            webView->onClosed();
             if (webView->shouldHideOnExit)
             {
                 webView->hide();
