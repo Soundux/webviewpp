@@ -34,22 +34,39 @@ namespace Soundux
         auto j = nlohmann::json::parse(data, nullptr, false);
         if (!j.is_discarded())
         {
-            auto params = j.at("params");
-            auto name = j.at("name").get<std::string>();
             auto seq = j.at("seq").get<std::uint32_t>();
+            auto name = j.at("name").get<std::string>();
 
-            const auto &callback = callbacks.at(name);
-
-            auto *syncPtr = dynamic_cast<SyncCallback *>(callback.get());
-            if (syncPtr)
+            if (name == "nativeCall")
             {
-                auto code = std::regex_replace(resolve_code, std::regex(R"(\{0\})"), std::to_string(seq));
-                code = std::regex_replace(code, std::regex(R"(\{1\})"), syncPtr->function(params));
-                runCode(code);
+                if (j.find("result") != j.end())
+                {
+                    auto result = j.at("result");
+                    nativeCalls.at(seq)(result);
+                    nativeCalls.erase(seq);
+                }
+                else
+                {
+                    nativeCalls.erase(seq);
+                }
             }
             else
             {
-                dynamic_cast<AsyncCallback *>(callback.get())->function(params, seq);
+                auto params = j.at("params");
+
+                const auto &callback = callbacks.at(name);
+
+                auto *syncPtr = dynamic_cast<SyncCallback *>(callback.get());
+                if (syncPtr)
+                {
+                    auto code = std::regex_replace(resolve_code, std::regex(R"(\{0\})"), std::to_string(seq));
+                    code = std::regex_replace(code, std::regex(R"(\{1\})"), syncPtr->function(params));
+                    runCode(code);
+                }
+                else
+                {
+                    dynamic_cast<AsyncCallback *>(callback.get())->function(params, seq);
+                }
             }
         }
     }

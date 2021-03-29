@@ -85,6 +85,29 @@ namespace Soundux
         {
             std::function<void()> func;
         };
+        template <typename T> class Future
+        {
+            friend class WebView;
+
+            std::optional<T> rtn;
+            std::function<void(const T &)> callback;
+
+            void resolve(T result)
+            {
+                rtn = std::move(result);
+                if (callback)
+                {
+                    callback(*rtn);
+                }
+            }
+
+          public:
+            void then(std::function<void(const T &)> then)
+            {
+                callback = std::move(then);
+            }
+        };
+
         struct Callback
         {
             std::string code;
@@ -125,6 +148,7 @@ namespace Soundux
         std::function<void(int, int)> resizeCallback;
         std::function<void(const std::string &)> navigateCallback;
         std::map<std::string, std::unique_ptr<Callback>> callbacks;
+        std::map<std::uint64_t, std::function<void(const nlohmann::json &)>> nativeCalls;
 
         static inline std::string callback_code = R"js(
           async function {0}(...param)
@@ -142,6 +166,13 @@ namespace Soundux
                     }));
                     return JSON.parse(await promise);
                 }
+        )js";
+        static inline std::string native_code = R"js(
+            window.external.invoke(JSON.stringify({
+                "seq": {0},
+                "name": "nativeCall",
+                "result": {1}
+            }));
         )js";
         static inline std::string resolve_code = R"js(
             window._rpc[{0}].resolve(`{1}`);
@@ -208,6 +239,49 @@ namespace Soundux
             auto code = std::regex_replace(resolve_code, std::regex(R"(\{0\})"), std::to_string(promise.id));
             code = std::regex_replace(code, std::regex(R"(\{1\})"), rtn);
             runCodeSafe(code);
+        }
+        template <typename rtn_t, typename... T>
+        [[nodiscard]] std::shared_ptr<Future<rtn_t>> callJS(const std::string &function, const T &...parameters)
+        {
+            static std::uint64_t seq = 0;
+            auto funcCall = function + "(";
+            static auto unpackArgsFn = [&](const auto &arg) {
+                if constexpr (traits::is_optional<std::decay_t<decltype(arg)>>::value)
+                {
+                    if (arg)
+                    {
+                        funcCall += nlohmann::json(arg).dump();
+                    }
+                    else
+                    {
+                        funcCall += "null";
+                    }
+                }
+                else
+                {
+                    funcCall += nlohmann::json(arg).dump();
+                }
+                funcCall += ",";
+            };
+
+            if constexpr (sizeof...(parameters) > 0)
+            {
+                (unpackArgsFn(parameters), ...);
+                funcCall.back() = ')';
+            }
+            else
+            {
+                funcCall += ")";
+            }
+
+            auto rtn = std::make_shared<Future<rtn_t>>();
+            nativeCalls.emplace(seq, [rtn](const nlohmann::json &j) { rtn->resolve(j.get<rtn_t>()); });
+
+            auto code = std::regex_replace(native_code, std::regex(R"(\{0\})"), std::to_string(seq));
+            code = std::regex_replace(code, std::regex(R"(\{1\})"), funcCall);
+            runCodeSafe(code);
+
+            return rtn;
         }
         template <typename func_t> void addCallback(const std::string &name, func_t function)
         {
