@@ -23,7 +23,7 @@ jobs:
                   submodules: recursive
 
             - name: Install build dependencies
-              run: "sudo apt-get update && apt-get install git build-essential cmake libwebkit2gtk-4.0-dev"
+              run: "sudo apt-get update && sudo apt-get install git build-essential cmake libwebkit2gtk-4.0-dev"
 
             - name: Compile
               run: "mkdir build && cd build && cmake ../examples/simple && cmake --build . --config Release"
