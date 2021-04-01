@@ -189,6 +189,7 @@ namespace Soundux
         virtual void onResize(int, int);
         virtual void onNavigate(const std::string &);
         virtual void resolveCallback(const std::string &);
+        virtual std::vector<unsigned char> getEmbeddedResource(const std::string &) const;
 
       public:
         WebView() = default;

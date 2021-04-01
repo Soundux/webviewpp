@@ -128,4 +128,10 @@ namespace Soundux
     {
         whenAllReadyCallback = func;
     }
+
+    std::vector<unsigned char> WebView::getEmbeddedResource(const std::string &fileName) const
+    {
+        // TODO(curve): Store the data of the files inside of a header without causing a compiler crash
+        return {};
+    }
 } // namespace Soundux

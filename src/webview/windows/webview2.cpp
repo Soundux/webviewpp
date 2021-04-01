@@ -1,5 +1,6 @@
 #if defined(_WIN32)
 #include "webview2.hpp"
+#include <Shlwapi.h>
 
 namespace Soundux
 {
@@ -122,67 +123,112 @@ namespace Soundux
             Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
                 [&](auto res, ICoreWebView2Environment *env) -> HRESULT {
                     auto controllerResult = env->CreateCoreWebView2Controller(
-                        hwnd, Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
-                                  [&](auto _res, ICoreWebView2Controller *controller) -> HRESULT {
-                                      if (FAILED(_res))
-                                      {
-                                          return res;
-                                      }
+                        hwnd,
+                        Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
+                            [&](auto _res, ICoreWebView2Controller *controller) -> HRESULT {
+                                if (FAILED(_res))
+                                {
+                                    return res;
+                                }
 
-                                      if (controller)
-                                      {
-                                          webViewController = controller;
-                                          webViewController->get_CoreWebView2(&webViewWindow);
-                                      }
+                                if (controller)
+                                {
+                                    webViewController = controller;
+                                    webViewController->get_CoreWebView2(&webViewWindow);
+                                }
 
-                                      EventRegistrationToken navigationCompleted;
-                                      webViewWindow->add_NavigationCompleted(
-                                          Microsoft::WRL::Callback<ICoreWebView2NavigationCompletedEventHandler>(
-                                              [this](auto *webview, auto *args) {
-                                                  wil::unique_cotaskmem_string uri;
-                                                  webview->get_Source(&uri);
-                                                  onNavigate(narrow(uri.get()));
-                                                  return S_OK;
-                                              })
-                                              .Get(),
-                                          &navigationCompleted);
+                                EventRegistrationToken navigationCompleted;
+                                webViewWindow->add_NavigationCompleted(
+                                    Microsoft::WRL::Callback<ICoreWebView2NavigationCompletedEventHandler>(
+                                        [this](auto *webview, [[maybe_unused]] auto *args) {
+                                            wil::unique_cotaskmem_string uri;
+                                            webview->get_Source(&uri);
+                                            onNavigate(narrow(uri.get()));
+                                            return S_OK;
+                                        })
+                                        .Get(),
+                                    &navigationCompleted);
 
-                                      EventRegistrationToken messageReceived;
-                                      webViewWindow->add_WebMessageReceived(
-                                          Microsoft::WRL::Callback<ICoreWebView2WebMessageReceivedEventHandler>(
-                                              [this]([[maybe_unused]] auto *webview, auto *args) {
-                                                  LPWSTR raw = nullptr;
-                                                  args->TryGetWebMessageAsString(&raw);
+                                webViewWindow->AddWebResourceRequestedFilter(L"*",
+                                                                             COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
 
-                                                  auto message = narrow(raw);
+                                EventRegistrationToken webResourceAdded;
+                                webViewWindow->add_WebResourceRequested(
+                                    Microsoft::WRL::Callback<ICoreWebView2WebResourceRequestedEventHandler>(
+                                        [this, &env]([[maybe_unused]] auto *sender,
+                                                     ICoreWebView2WebResourceRequestedEventArgs *args) {
+                                            ICoreWebView2WebResourceRequest *req = nullptr;
+                                            args->get_Request(&req);
 
-                                                  if (!callbacks.empty())
-                                                  {
-                                                      WebView::resolveCallback(message);
-                                                  }
+                                            LPWSTR rawURI{};
+                                            req->get_Uri(&rawURI);
 
-                                                  CoTaskMemFree(raw);
-                                                  return S_OK;
-                                              })
-                                              .Get(),
-                                          &messageReceived);
+                                            auto uri = narrow(rawURI);
 
-                                      initDone = true;
-                                      runCode("window.external.invoke=arg=>window.chrome.webview.postMessage(arg);",
-                                              true);
-                                      runCode(setup_code, true);
+                                            if (uri.length() > 11 && uri.substr(0, 11) == "embedded://")
+                                            {
+                                                auto fileName = uri.substr(uri.find_last_of('/') + 1);
+                                                auto mime = uri.substr(fileName.find_last_of('.'));
 
-                                      onResize(width, height);
+                                                auto content = getEmbeddedResource(fileName);
 
-                                      for (auto &fn : runOnInitDone)
-                                      {
-                                          fn();
-                                      }
-                                      runOnInitDone.clear();
+                                                wil::com_ptr<ICoreWebView2Environment> env;
+                                                wil::com_ptr<ICoreWebView2_2> webview2;
+                                                webViewWindow->QueryInterface(IID_PPV_ARGS(&webview2));
+                                                webview2->get_Environment(&env);
 
-                                      return S_OK;
-                                  })
-                                  .Get());
+                                                wil::com_ptr<IStream> stream =
+                                                    SHCreateMemStream(content.data(), content.size());
+
+                                                wil::com_ptr<ICoreWebView2WebResourceResponse> response;
+                                                // env->CreateWebResourceResponse(
+                                                //     stream.get(), 200, L"OK",
+                                                //     widen("Content-Type: " + mimeTypeList.at(mime)).c_str(),
+                                                //     &response);
+
+                                                args->put_Response(response.get());
+                                            }
+
+                                            return S_OK;
+                                        })
+                                        .Get(),
+                                    &webResourceAdded);
+
+                                EventRegistrationToken messageReceived;
+                                webViewWindow->add_WebMessageReceived(
+                                    Microsoft::WRL::Callback<ICoreWebView2WebMessageReceivedEventHandler>(
+                                        [this]([[maybe_unused]] auto *webview, auto *args) {
+                                            LPWSTR raw = nullptr;
+                                            args->TryGetWebMessageAsString(&raw);
+
+                                            auto message = narrow(raw);
+
+                                            if (!callbacks.empty())
+                                            {
+                                                WebView::resolveCallback(message);
+                                            }
+
+                                            CoTaskMemFree(raw);
+                                            return S_OK;
+                                        })
+                                        .Get(),
+                                    &messageReceived);
+
+                                initDone = true;
+                                runCode("window.external.invoke=arg=>window.chrome.webview.postMessage(arg);", true);
+                                runCode(setup_code, true);
+
+                                onResize(width, height);
+
+                                for (auto &fn : runOnInitDone)
+                                {
+                                    fn();
+                                }
+                                runOnInitDone.clear();
+
+                                return S_OK;
+                            })
+                            .Get());
                     return controllerResult;
                 })
                 .Get());
