@@ -19,6 +19,7 @@ namespace Soundux
         static void destroy(GtkWidget *, gpointer);
 
         static gboolean onClose(GtkWidget *, GdkEvent *, gpointer);
+        static void onUriRequested(WebKitURISchemeRequest *, gpointer);
         static gboolean contextMenu(WebKitWebView *, GtkWidget *, WebKitHitTestResultContext *, gboolean, gpointer);
 
       public:

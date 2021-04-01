@@ -94,6 +94,28 @@ namespace Soundux
         return FALSE;
     }
 
+    void WebKit2Gtk::onUriRequested(WebKitURISchemeRequest *request, [[maybe_unused]] gpointer userData)
+    {
+        auto *webview = reinterpret_cast<WebKit2Gtk *>(userData);
+        GInputStream *stream = nullptr;
+        gint64 stream_length = 0;
+
+        std::string uri = webkit_uri_scheme_request_get_uri(request);
+        if (uri.size() > 11)
+        {
+            uri = uri.substr(11);
+            auto fileName = uri.substr(uri.find_last_of('/') + 1);
+            auto resourceData = webview->getEmbeddedResource(fileName);
+
+            auto *data = new unsigned char[resourceData.size()];
+            memcpy(data, resourceData.data(), resourceData.size());
+            stream_length = static_cast<gint64>(resourceData.size());
+
+            stream = g_memory_input_stream_new_from_data(data, stream_length, g_free);
+            webkit_uri_scheme_request_finish(request, stream, stream_length, nullptr);
+        }
+    }
+
     bool WebKit2Gtk::setup(int width, int height)
     {
         this->width = width;
@@ -125,6 +147,9 @@ namespace Soundux
         g_signal_connect(window, "configure-event", G_CALLBACK(resize), this);              // NOLINT
         g_signal_connect(window, "delete_event", G_CALLBACK(onClose), this);                // NOLINT
         g_signal_connect(window, "destroy", G_CALLBACK(destroy), this);                     // NOLINT
+
+        webkit_web_context_register_uri_scheme(webkit_web_context_get_default(), "embedded", onUriRequested, this,
+                                               nullptr);
 
         gtk_widget_grab_focus(GTK_WIDGET(webview)); // NOLINT
         gtk_widget_show_all(window);
