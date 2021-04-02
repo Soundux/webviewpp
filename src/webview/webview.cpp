@@ -3,6 +3,14 @@
 #include <memory>
 #include <string>
 
+#if __has_include(<embedded/include.hpp>)
+#define EMBEDDED_FOUND
+#include <embedded/include.hpp>
+#elif __has_include("embedded/include.hpp")
+#define EMBEDDED_FOUND
+#include "embedded/include.hpp"
+#endif
+
 namespace Soundux
 {
     std::uint64_t WebView::seq = 0;
@@ -129,10 +137,12 @@ namespace Soundux
         whenAllReadyCallback = func;
     }
 
-    std::vector<unsigned char> WebView::getEmbeddedResource(const std::string &fileName) const
+    std::vector<unsigned char> WebView::getEmbeddedResource([[maybe_unused]] const std::string &fileName) const
     {
-        // TODO(curve): Store the data of the files inside of a header without causing a compiler crash - base64 almost
-        // works
+#if EMBEDDED_FOUND
+        return embedded_files.at(fileName);
+#else
         return {};
+#endif
     }
 } // namespace Soundux
