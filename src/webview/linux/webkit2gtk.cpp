@@ -99,7 +99,6 @@ namespace Soundux
     {
         auto *webview = reinterpret_cast<WebKit2Gtk *>(userData);
         GInputStream *stream = nullptr;
-        gint64 stream_length = 0;
 
         std::string uri = webkit_uri_scheme_request_get_uri(request);
         if (uri.size() > 11)
@@ -108,12 +107,12 @@ namespace Soundux
             auto fileName = uri.substr(uri.find_last_of('/') + 1);
             auto resourceData = webview->getEmbeddedResource(fileName);
 
-            auto *data = new unsigned char[resourceData.size()];
-            memcpy(data, resourceData.data(), resourceData.size());
-            stream_length = static_cast<gint64>(resourceData.size());
-
-            stream = g_memory_input_stream_new_from_data(data, stream_length, g_free);
-            webkit_uri_scheme_request_finish(request, stream, stream_length, nullptr);
+            if (resourceData.second)
+            {
+                stream = g_memory_input_stream_new_from_data(resourceData.second,
+                                                             static_cast<gsize>(resourceData.first), g_free);
+                webkit_uri_scheme_request_finish(request, stream, static_cast<gsize>(resourceData.first), nullptr);
+            }
         }
     }
 
