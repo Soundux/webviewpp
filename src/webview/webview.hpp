@@ -141,8 +141,8 @@ namespace Soundux
         int height;
         bool devTools;
         std::string url;
-        bool shouldExit;
         bool isHidden = false;
+        bool shouldExit = false;
         static std::uint64_t seq;
         bool shouldHideOnExit = false;
         std::function<void()> closeCallback;
