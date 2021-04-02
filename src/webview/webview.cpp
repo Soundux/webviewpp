@@ -137,12 +137,15 @@ namespace Soundux
         whenAllReadyCallback = func;
     }
 
-    std::vector<unsigned char> WebView::getEmbeddedResource([[maybe_unused]] const std::string &fileName) const
+    std::pair<std::size_t, unsigned char *> WebView::getEmbeddedResource(
+        [[maybe_unused]] const std::string &fileName) const
     {
-#if EMBEDDED_FOUND
-        return embedded_files.at(fileName);
-#else
-        return {};
+#ifdef EMBEDDED_FOUND
+        if (embedded_files.find(fileName) != embedded_files.end())
+        {
+            return embedded_files.at(fileName);
+        }
 #endif
+        return {0, nullptr};
     }
 } // namespace Soundux
