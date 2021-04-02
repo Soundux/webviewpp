@@ -197,30 +197,57 @@ namespace Soundux
         WebView(const WebView &) = delete;
         virtual WebView &operator=(const WebView &) = delete;
 
+        /// @brief Returns wether or not the devtools are enabled
         virtual bool getDevToolsEnabled();
+        /// @brief Enables or disables the devtools
+        /// @remarks Will also disable the context-menu when devtools are disabled
         virtual void enableDevTools(bool);
+        /// @brief Returns wether or not the window is hidden
         virtual bool getIsHidden();
 
+        /// @brief Runs the webview
+        /// @remarks Blocks until the webview is closed
         virtual void run() = 0;
+        /// @brief Will show the window
         virtual void show() = 0;
+        /// @brief Will hide the window
         virtual void hide() = 0;
+        /// @brief Will close the window and finish execution
         virtual void exit() = 0;
+        /// @brief This function will setup the webview
+        /// @remarks Is required to be run first
+        /// @param width Width of the window to be created
+        /// @param height Height of the window to be created
         virtual bool setup(int, int) = 0;
+        /// @brief Will run the given function in a thread safe manner
         virtual void runThreadSafe(std::function<void()>) = 0;
 
+        /// @brief Will set the windows size
         virtual void setSize(int, int);
+        /// @brief If this is set to `true` the window will hide itself instead of closing
         virtual void hideOnClose(bool);
+        /// @brief Will navigate to the given url
         virtual void navigate(const std::string &);
+        /// @brief Will set the windows title
         virtual void setTitle(const std::string &) = 0;
-
+        /// @brief Will run the given code thread safe
         virtual void runCodeSafe(const std::string &);
+        /// @brief Will run the given javascript code
+        /// @remarks this may crash the webview if it's not run thread safe
         virtual void runCode(const std::string &, bool = false) = 0;
 
+        /// @brief Will run the given function as soon as all calls from `callJS` finished
         virtual void whenAllReady(const std::function<void()> &);
+        /// @brief Will call the given callback as soon as the window is closed
+        /// @remarks Will also get called when the window gets hidden (should `hideOnClose` be `true`)
         virtual void setCloseCallback(const std::function<void()> &);
+        /// @brief Will call the given callback when the window gets resized
         virtual void setResizeCallback(const std::function<void(int, int)> &);
+        /// @brief Will be called on a navigation (url changed) event
         virtual void setNavigateCallback(const std::function<void(const std::string &)> &);
 
+        /// @brief Will resolve the given promise with the given result
+        /// @remarks The given result has to be serializeable by `nlohmann::json`
         template <typename T> void resolve(const JSPromise &promise, const T &result)
         {
             std::string rtn;
@@ -244,6 +271,11 @@ namespace Soundux
             code = std::regex_replace(code, std::regex(R"(\{1\})"), rtn);
             runCodeSafe(code);
         }
+        /// @brief Will call a JavaScript function and return its result as `rtn_t`
+        /// @remarks `rtn_t` as well as all `T` have to be serializeable by `nlohmann::json`
+        /// @param function Name of the javascript function, e.g. `console.log`
+        /// @param parameters Parameter list of the parameters that should be given to the given js function
+        /// @returns Future that will be resolved when the given javascript function finished executing
         template <typename rtn_t, typename... T>
         [[nodiscard]] std::shared_ptr<Future<rtn_t>> callJS(const std::string &function, const T &...parameters)
         {
@@ -287,6 +319,10 @@ namespace Soundux
 
             return rtn;
         }
+        /// @brief Will register the given function as a javascript function
+        /// @param name The name the javascript function to be created
+        /// @param function The function to be turned into javascript function
+        /// @remarks All parameters as well as the return type of `func_t` have to be serializable by `nlohmann::json`
         template <typename func_t> void addCallback(const std::string &name, func_t function)
         {
             using func_traits = traits::func_traits<decltype(function)>;
