@@ -20,7 +20,7 @@ A cross-platform C++17 library that allows you to create a simple webview.
 
 ## Dependencies
 - Windows
-  - (Runtime) [Webview2](https://docs.microsoft.com/microsoft-edge/webview2/) or Edge Chromium Canary Build
+  - (Runtime) [Webview2](https://developer.microsoft.com/microsoft-edge/webview2/#download-section) or Edge Chromium Canary Build
 - Linux
   - (Runtime & Build) webkit2gtk
 
