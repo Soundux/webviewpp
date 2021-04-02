@@ -18,6 +18,12 @@ A cross-platform C++17 library that allows you to create a simple webview.
   - See [documentation](#documentation)
   - See `examples` for examples
 
+## Dependencies
+- Windows
+  - (Runtime) [Webview2](https://docs.microsoft.com/microsoft-edge/webview2/) or Edge Chromium Canary Build
+- Linux
+  - (Runtime & Build) webkit2gtk
+
 ## Embedding
 webviewpp supports embedding of all required files.  
 To embed your files you have to use the [embed-helper](https://github.com/Soundux/webviewpp/tree/master/embed-helper).
