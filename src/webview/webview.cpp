@@ -6,9 +6,6 @@
 #if __has_include(<embedded/include.hpp>)
 #define EMBEDDED_FOUND
 #include <embedded/include.hpp>
-#elif __has_include("embedded/include.hpp")
-#define EMBEDDED_FOUND
-#include "embedded/include.hpp"
 #endif
 
 namespace Soundux
