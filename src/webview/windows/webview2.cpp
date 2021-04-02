@@ -1,5 +1,6 @@
 #if defined(_WIN32)
 #include "webview2.hpp"
+#include "mimeTypeList.hpp"
 #include <Shlwapi.h>
 
 namespace Soundux
@@ -165,28 +166,30 @@ namespace Soundux
 
                                             auto uri = narrow(rawURI);
 
-                                            if (uri.length() > 11 && uri.substr(0, 11) == "embedded://")
+                                            if (uri.length() > 16 && uri.substr(0, 16) == "file:///embedded")
                                             {
                                                 auto fileName = uri.substr(uri.find_last_of('/') + 1);
-                                                auto mime = uri.substr(fileName.find_last_of('.'));
+                                                auto mime = fileName.substr(fileName.find_last_of('.'));
 
                                                 auto content = getEmbeddedResource(fileName);
+                                                if (content.second)
+                                                {
+                                                    wil::com_ptr<ICoreWebView2Environment> env;
+                                                    wil::com_ptr<ICoreWebView2_2> webview2;
+                                                    webViewWindow->QueryInterface(IID_PPV_ARGS(&webview2));
+                                                    webview2->get_Environment(&env);
 
-                                                wil::com_ptr<ICoreWebView2Environment> env;
-                                                wil::com_ptr<ICoreWebView2_2> webview2;
-                                                webViewWindow->QueryInterface(IID_PPV_ARGS(&webview2));
-                                                webview2->get_Environment(&env);
+                                                    wil::com_ptr<IStream> stream =
+                                                        SHCreateMemStream(content.second, content.first);
 
-                                                wil::com_ptr<IStream> stream =
-                                                    SHCreateMemStream(content.data(), content.size());
+                                                    wil::com_ptr<ICoreWebView2WebResourceResponse> response;
+                                                    env->CreateWebResourceResponse(
+                                                        stream.get(), 200, L"OK",
+                                                        widen("Content-Type: " + mimeTypeList.at(mime)).c_str(),
+                                                        &response);
 
-                                                wil::com_ptr<ICoreWebView2WebResourceResponse> response;
-                                                // env->CreateWebResourceResponse(
-                                                //     stream.get(), 200, L"OK",
-                                                //     widen("Content-Type: " + mimeTypeList.at(mime)).c_str(),
-                                                //     &response);
-
-                                                args->put_Response(response.get());
+                                                    args->put_Response(response.get());
+                                                }
                                             }
 
                                             return S_OK;
