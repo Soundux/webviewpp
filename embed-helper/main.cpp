@@ -43,7 +43,7 @@ int main(int argc, char **args)
             std::ofstream fileStream("embedded/" + file.path().filename().string() + ".hpp");
             fileStream << "#pragma once" << std::endl
                        << "#include \"webview_base.hpp\"" << std::endl
-                       << "unsigned char embed_file_" << fileFunc << "[] = {";
+                       << "inline unsigned char embed_file_" << fileFunc << "[] = {";
 
             std::ifstream fileDataStream(file.path(), std::ios::binary);
             std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(fileDataStream), {});
@@ -58,7 +58,7 @@ int main(int argc, char **args)
             }
             fileStream << "};";
 
-            fileStream << "auto webview_embed_file_" << fileFunc << " = []() -> bool { embedded_files.insert({\""
+            fileStream << "inline auto webview_embed_file_" << fileFunc << " = []() -> bool { embedded_files.insert({\""
                        << file.path().filename().string() << "\", {" << std::dec << buffer.size() << ","
                        << "embed_file_" << fileFunc << "}});"
                        << "return true; }();";
