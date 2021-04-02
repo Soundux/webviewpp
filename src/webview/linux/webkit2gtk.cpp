@@ -64,6 +64,7 @@ namespace Soundux
     {
         isHidden = false;
         gtk_widget_show(window);
+        gtk_widget_grab_focus(window);
     }
 
     gboolean WebKit2Gtk::contextMenu([[maybe_unused]] WebKitWebView *webkitwebview, [[maybe_unused]] GtkWidget *widget,
