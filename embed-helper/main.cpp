@@ -22,7 +22,7 @@ int main(int argc, char **args)
                << "#include <map>" << std::endl
                << "#include <string>" << std::endl
                << "#include <vector>" << std::endl
-               << "inline std::map<const std::string, const std::vector<unsigned char>> embedded_files;";
+               << "inline std::map<const std::string, std::pair<std::size_t, unsigned char*>> embedded_files;";
         output.close();
         std::vector<std::string> filesToInclude;
 
@@ -33,6 +33,8 @@ int main(int argc, char **args)
             if (file.path().filename().string().at(0) == '.' || !file.is_regular_file())
                 continue;
 
+            std::cout << "Embedding: " << file.path() << std::endl;
+
             filesToInclude.emplace_back(file.path().filename().string() + ".hpp");
             auto fileFunc = file.path().filename().string();
             std::replace(fileFunc.begin(), fileFunc.end(), '.', '_');
@@ -41,8 +43,7 @@ int main(int argc, char **args)
             std::ofstream fileStream("embedded/" + file.path().filename().string() + ".hpp");
             fileStream << "#pragma once" << std::endl
                        << "#include \"webview_base.hpp\"" << std::endl
-                       << "auto webview_embed_file_" << fileFunc << " = []() -> bool { embedded_files.insert({\""
-                       << file.path().filename().string() << "\", {";
+                       << "unsigned char embed_file_" << fileFunc << "[] = {";
 
             std::ifstream fileDataStream(file.path(), std::ios::binary);
             std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(fileDataStream), {});
@@ -55,8 +56,12 @@ int main(int argc, char **args)
                     fileStream << ",";
                 }
             }
+            fileStream << "};";
 
-            fileStream << "}}); return true; }();";
+            fileStream << "auto webview_embed_file_" << fileFunc << " = []() -> bool { embedded_files.insert({\""
+                       << file.path().filename().string() << "\", {" << std::dec << buffer.size() << ","
+                       << "embed_file_" << fileFunc << "}});"
+                       << "return true; }();";
             fileStream.close();
         }
 
