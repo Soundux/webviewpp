@@ -20,7 +20,7 @@ int main(int argc, char **args)
         std::ofstream output("embedded/webview_base.hpp");
         output << "#pragma once" << std::endl
                << "#include <map>" << std::endl
-               << "#include <pair>" << std::endl
+               << "#include <utility>" << std::endl
                << "#include <string>" << std::endl
                << "inline std::map<const std::string, std::pair<std::size_t, unsigned char*>> embedded_files;";
         output.close();
