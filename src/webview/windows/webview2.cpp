@@ -120,7 +120,11 @@ namespace Soundux
         UpdateWindow(hwnd);
         SetFocus(hwnd);
 
-        auto envResult = CreateCoreWebView2Environment(
+        std::string appdata = std::getenv("APPDATA");
+        appdata += "\\..\\Local\\MicrosoftEdge";
+
+        auto envResult = CreateCoreWebView2EnvironmentWithOptions(
+            nullptr, widen(appdata).c_str(), nullptr,
             Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
                 [&](auto res, ICoreWebView2Environment *env) -> HRESULT {
                     auto controllerResult = env->CreateCoreWebView2Controller(
