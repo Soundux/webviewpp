@@ -120,8 +120,8 @@ namespace Soundux
         UpdateWindow(hwnd);
         SetFocus(hwnd);
 
-        std::string appdata = std::getenv("APPDATA");
-        appdata += "\\..\\Local\\MicrosoftEdge";
+        std::string appdata = std::getenv("LOCALAPPDATA");
+        appdata += "\\MicrosoftEdge";
 
         auto envResult = CreateCoreWebView2EnvironmentWithOptions(
             nullptr, widen(appdata).c_str(), nullptr,
