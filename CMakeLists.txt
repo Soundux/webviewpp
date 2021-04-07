@@ -23,7 +23,12 @@ if (WIN32)
 	exec_program(${NUGET_EXE}
     	ARGS install "Microsoft.Windows.ImplementationLibrary" -ExcludeVersion -OutputDirectory ${CMAKE_BINARY_DIR}/packages)
 
-    target_link_libraries(webview INTERFACE Shlwapi.lib ${CMAKE_BINARY_DIR}/packages/Microsoft.Web.WebView2/build/native/Microsoft.Web.WebView2.targets ${CMAKE_BINARY_DIR}/packages/Microsoft.Windows.ImplementationLibrary/build/native/Microsoft.Windows.ImplementationLibrary.targets)
+    set(EDGE_PLATFORM "x86")
+    if(CMAKE_GENERATOR_PLATFORM STREQUAL "x64")
+        set(EDGE_PLATFORM "x64")
+    endif()
+    
+    target_link_libraries(webview INTERFACE Version.lib Shlwapi.lib ${CMAKE_BINARY_DIR}/packages/Microsoft.Web.WebView2/build/native/${EDGE_PLATFORM}/WebView2LoaderStatic.lib ${CMAKE_BINARY_DIR}/packages/Microsoft.Windows.ImplementationLibrary/build/native/Microsoft.Windows.ImplementationLibrary.targets)
     target_include_directories(webview SYSTEM PUBLIC ${CMAKE_BINARY_DIR}/packages/Microsoft.Web.WebView2/build/native/include ${CMAKE_BINARY_DIR}/packages/Microsoft.Windows.ImplementationLibrary/include)
 elseif(UNIX)
     target_compile_options(webview INTERFACE -Wall -Wextra -Werror -pedantic -Wno-unused-lambda-capture)
