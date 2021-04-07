@@ -48,4 +48,4 @@ Usage:
 The documentation was moved to the [main header file](https://github.com/Soundux/webviewpp/blob/master/src/webview/webview.hpp#L200)
 
 
-<i>Note: This work was originally based on the work of [MichaelKim](https://github.com/MichaelKim/webview)</i>
+> Note: This work was originally based on the work of [MichaelKim](https://github.com/MichaelKim/webview)
