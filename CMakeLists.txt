@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 3.1)
-project(webview VERSION 0.1 DESCRIPTION "The WebView component of Soundux")
+project(webview VERSION 0.2 DESCRIPTION "A cross-platform C++ webview library")
 
 file(GLOB src
-    "src/*.cpp"
-    "src/*/*.cpp"
-    "src/*/*/*.cpp"
+    "webview/src/*.cpp"
+    "webview/src/*/*.cpp"
+    "webview/src/*/*/*.cpp"
 )
 
 add_library(webview STATIC ${src})
+# add_executable(webview ${src})
 
 if (WIN32)
     target_compile_options(webview PRIVATE /W4)
@@ -26,17 +27,17 @@ if (WIN32)
     target_link_libraries(webview INTERFACE Version.lib Shlwapi.lib ${CMAKE_BINARY_DIR}/packages/Microsoft.Web.WebView2/build/native/x64/WebView2LoaderStatic.lib ${CMAKE_BINARY_DIR}/packages/Microsoft.Windows.ImplementationLibrary/build/native/Microsoft.Windows.ImplementationLibrary.targets)
     target_include_directories(webview SYSTEM PUBLIC ${CMAKE_BINARY_DIR}/packages/Microsoft.Web.WebView2/build/native/include ${CMAKE_BINARY_DIR}/packages/Microsoft.Windows.ImplementationLibrary/include)
 elseif(UNIX)
-    target_compile_options(webview INTERFACE -Wall -Wextra -Werror -pedantic -Wno-unused-lambda-capture)
+    target_compile_options(webview PRIVATE -Wall -Wextra -Werror -pedantic -Wno-unused-lambda-capture)
     
     find_package(PkgConfig REQUIRED)
 	pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
 	pkg_check_modules(WEBKIT2 REQUIRED webkit2gtk-4.0)
 
-    target_link_libraries(webview INTERFACE ${GTK3_LIBRARIES} ${WEBKIT2_LIBRARIES})
+    target_link_libraries(webview INTERFACE ${GTK3_LIBRARIES} ${WEBKIT2_LIBRARIES} pthread)
     target_include_directories(webview SYSTEM PUBLIC ${GTK3_INCLUDE_DIRS} ${WEBKIT2_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR})
 endif()
 
-target_include_directories(webview SYSTEM PUBLIC "src/")
+target_include_directories(webview SYSTEM PUBLIC "webview/include/")
 target_include_directories(webview SYSTEM PUBLIC "lib/json/single_include/nlohmann")
 
 target_compile_features(webview PUBLIC cxx_std_17)
