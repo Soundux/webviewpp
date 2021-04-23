@@ -2,7 +2,7 @@
 #include <javascript/function.hpp>
 #include <json.hpp>
 
-std::function<std::string(const nlohmann::json &)> Webview::Function::getFunc() const
+std::function<nlohmann::json(const nlohmann::json &)> Webview::Function::getFunc() const
 {
     return parserFunction;
 }

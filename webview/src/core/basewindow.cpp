@@ -83,8 +83,10 @@ void Webview::BaseWindow::handleRawCallRequest(const std::string &rawRequest)
 
             if (const auto *asyncFunction = dynamic_cast<const AsyncFunction *>(function.get()); asyncFunction)
             {
-                std::thread t([=] { asyncFunction->getFunc()(*this, request.params, request.seq); });
-                t.detach();
+                auto future = std::make_shared<std::future<void>>();
+                *future = std::async(std::launch::async, [future, request, asyncFunction, this]() {
+                    asyncFunction->getFunc()(*this, request.params, request.seq);
+                });
             }
             else
             {
@@ -92,7 +94,7 @@ void Webview::BaseWindow::handleRawCallRequest(const std::string &rawRequest)
 
                 auto responseCode =
                     std::regex_replace(resolveCall, std::regex(R"(\{0\})"), std::to_string(request.seq));
-                responseCode = std::regex_replace(responseCode, std::regex(R"(\{1\})"), result);
+                responseCode = std::regex_replace(responseCode, std::regex(R"(\{1\})"), result.dump());
                 runCode(responseCode);
             }
         }

@@ -17,7 +17,7 @@ namespace Webview
     {
       protected:
         std::string name;
-        std::function<std::string(const nlohmann::json &)> parserFunction;
+        std::function<nlohmann::json(const nlohmann::json &)> parserFunction;
 
       public:
         Function() = default;
@@ -29,7 +29,7 @@ namespace Webview
             using arg_t = typename func_traits::arg_t;
 
             // NOLINTNEXTLINE
-            parserFunction = [this, function](const nlohmann::json &j) -> std::string {
+            parserFunction = [this, function](const nlohmann::json &j) -> nlohmann::json {
                 arg_t packedArgs;
                 Helpers::setTuple(packedArgs, [&j](auto index, auto &val) {
                     if (j.size() > index)
@@ -44,21 +44,6 @@ namespace Webview
                     auto unpack = [function](auto &&...args) { function(args...); };
                     std::apply(unpack, packedArgs);
                 }
-                else if constexpr (Traits::is_optional<rtn_t>::value)
-                {
-                    //* If the function returns an optional we want to save the return value of the function to rtn
-                    rtn_t rtn; //* <- Is optional
-
-                    auto unpack = [&rtn, function](auto &&...args) { rtn = std::move(function(args...)); };
-                    std::apply(unpack, packedArgs);
-
-                    if (rtn)
-                    {
-                        return nlohmann::json(*rtn).dump();
-                    }
-
-                    //* If rtn is not set, meaning the function returned std::nullopt, we will return `null`
-                }
                 else
                 {
                     //* In case the return type is nothing special, we just want to save the return value of the
@@ -69,15 +54,26 @@ namespace Webview
                     auto unpack = [&rtn, function](auto &&...args) { rtn = std::move(function(args...)); };
                     std::apply(unpack, packedArgs);
 
-                    return nlohmann::json(rtn).dump();
+                    if constexpr (Traits::is_optional<rtn_t>::value)
+                    {
+                        //* Just to make sure this wont break with optionals
+                        if (rtn)
+                        {
+                            return nlohmann::json(*rtn);
+                        }
+                    }
+                    else
+                    {
+                        return nlohmann::json(rtn);
+                    }
                 }
 
-                return "null";
+                return nullptr;
             };
         }
 
         std::string getName() const;
-        std::function<std::string(const nlohmann::json &)> getFunc() const;
+        std::function<nlohmann::json(const nlohmann::json &)> getFunc() const;
     };
 
     class AsyncFunction : public Function
@@ -126,7 +122,6 @@ namespace Webview
       public:
         template <typename... T> JavaScriptFunction(std::string name, const T &...params) : name(std::move(name))
         {
-
             auto unpack = [this](auto &&arg) { arguments.emplace_back(nlohmann::json(arg)); };
             (unpack(params), ...);
         }
