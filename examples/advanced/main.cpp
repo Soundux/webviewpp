@@ -4,7 +4,12 @@
 
 int main()
 {
+#if defined(_WIN32)
+    Webview::Window webview("webview", 800, 900); //* We have to provide an identifier on windows
+#else
     Webview::Window webview(800, 900);
+#endif
+
     webview.setTitle("Example");
     webview.enableDevTools(true);
     webview.enableContextMenu(true);
