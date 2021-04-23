@@ -1,3 +1,4 @@
+#pragma once
 #if defined(_WIN32)
 #include <WebView2.h>
 #include <Windows.h>
