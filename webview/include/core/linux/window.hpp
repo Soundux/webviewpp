@@ -37,6 +37,7 @@ namespace Webview
         void run() override;
         void exit() override;
 
+        std::string getUrl() override;
         void setUrl(std::string newUrl) override;
         void setTitle(std::string newTitle) override;
         void setSize(std::size_t newWidth, std::size_t newHeight) override;

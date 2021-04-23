@@ -155,7 +155,7 @@ void Webview::Window::destroy([[maybe_unused]] GtkWidget *widget, gpointer arg)
 void Webview::Window::loadChanged(WebKitWebView *webkitwebview, [[maybe_unused]] WebKitLoadEvent event,
                                   [[maybe_unused]] gpointer arg)
 {
-    if (event == WEBKIT_LOAD_COMMITTED)
+    if (event == WEBKIT_LOAD_FINISHED)
     {
         auto *webview = reinterpret_cast<Window *>(arg);
         webview->onNavigate(webkit_web_view_get_uri(webkitwebview));
@@ -190,6 +190,11 @@ void Webview::Window::messageReceived([[maybe_unused]] WebKitUserContentManager 
 
     auto *value = webkit_javascript_result_get_js_value(result);
     webview->handleRawCallRequest(jsc_value_to_string(value));
+}
+
+std::string Webview::Window::getUrl()
+{
+    return webkit_web_view_get_uri(reinterpret_cast<WebKitWebView *>(webview));
 }
 
 #if defined(WEBVIEW_EMBEDDED)
