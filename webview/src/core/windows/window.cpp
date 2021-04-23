@@ -148,12 +148,12 @@ HRESULT Webview::Window::Window::onControllerCreated(ICoreWebView2Controller *co
     webViewController = controller;
     webViewController->get_CoreWebView2(&webViewWindow);
 
-    EventRegistrationToken navigationStarting;
-    webViewWindow->add_NavigationStarting(
-        Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>([this](auto *sender, auto *args) {
-            return onNavigationStarted(sender, args);
+    EventRegistrationToken navigationCompleted;
+    webViewWindow->add_NavigationCompleted(
+        Microsoft::WRL::Callback<ICoreWebView2NavigationCompletedEventHandler>([this](auto *sender, auto *args) {
+            return onNavigationCompleted(sender, args);
         }).Get(),
-        &navigationStarting);
+        &navigationCompleted);
 
 #if defined(WEBVIEW_EMBEDDED)
     webViewWindow->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
@@ -197,13 +197,13 @@ HRESULT Webview::Window::Window::onMessageReceived([[maybe_unused]] ICoreWebView
     return S_OK;
 }
 
-HRESULT Webview::Window::Window::onNavigationStarted([[maybe_unused]] ICoreWebView2 *sender,
-                                                     ICoreWebView2NavigationStartingEventArgs *args)
+HRESULT Webview::Window::Window::onNavigationCompleted([[maybe_unused]] ICoreWebView2 *sender,
+                                                       [[maybe_unused]] ICoreWebView2NavigationCompletedEventArgs *args)
 {
-    LPWSTR uri = nullptr;
-    args->get_Uri(&uri);
+    wil::unique_cotaskmem_string uri;
+    webview2->get_Source(&uri);
 
-    BaseWindow::onNavigate(narrow(uri));
+    BaseWindow::onNavigate(narrow(uri.get()));
     return S_OK;
 }
 

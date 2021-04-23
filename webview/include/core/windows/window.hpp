@@ -23,7 +23,7 @@ namespace Webview
         HRESULT onWebResourceRequested(ICoreWebView2 *, ICoreWebView2WebResourceRequestedEventArgs *);
 #endif
 
-        HRESULT onNavigationStarted(ICoreWebView2 *, ICoreWebView2NavigationStartingEventArgs *);
+        HRESULT onNavigationCompleted(ICoreWebView2 *, ICoreWebView2NavigationCompletedEventArgs *);
         HRESULT onMessageReceived(ICoreWebView2 *, ICoreWebView2WebMessageReceivedEventArgs *);
         HRESULT onControllerCreated(ICoreWebView2Controller *);
         HRESULT createEnvironment(const std::string &);
@@ -43,6 +43,7 @@ namespace Webview
         void run() override;
         void exit() override;
 
+        std::string getUrl() override;
         void setUrl(std::string newUrl) override;
         void setTitle(std::string newTitle) override;
         void setSize(std::size_t newWidth, std::size_t newHeight) override;
