@@ -77,7 +77,7 @@ namespace Webview
         template <typename T> std::future<T> callFunction(JavaScriptFunction &&function)
         {
             auto future = callFunction(std::forward<JavaScriptFunction>(function)).getResult();
-            return std::async(std::launch::deferred, [future] { return future.get().get<T>(); });
+            return std::async(std::launch::async, [future] { return future.get().get<T>(); });
         }
 
         virtual void runCode(const std::string &) = 0;
