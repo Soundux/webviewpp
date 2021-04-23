@@ -171,7 +171,7 @@ void Webview::BaseWindow::expose(const Function &function)
         const auto &asyncFunction = dynamic_cast<const AsyncFunction &>(function);
         ptr = std::make_shared<AsyncFunction>(asyncFunction);
     }
-    catch (const std::exception &e)
+    catch ([[maybe_unused]] const std::exception &e)
     {
         ptr = std::make_shared<Function>(function);
     }
