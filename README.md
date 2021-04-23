@@ -57,7 +57,7 @@ Usage:
       ```
   - Add the parent folder of the `embedded` folder to your include directories
   - Change `setUrl` calls to
-    - `embedded://<filepath>` on Linux
+    - `embedded:///<filepath>` on Linux
     - `file:///embedded/<filepath>` on Windows
 
 > For an example see [examples/embedded](https://github.com/Soundux/webviewpp/tree/master/examples/embedded)
