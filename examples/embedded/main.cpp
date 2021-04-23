@@ -2,12 +2,11 @@
 
 int main()
 {
-    SounduxWebView webview;
-    webview.setup(800, 900);
+    Webview::Window webview("webview", 800, 900);
     webview.setTitle("Embedded Example");
     webview.enableDevTools(true);
 
-    webview.navigate("embedded:///index.html");
+    webview.setUrl("file:///embedded/index.html");
     webview.run();
 
     return 0;
