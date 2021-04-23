@@ -20,9 +20,13 @@ int main(int argc, char **args)
         std::ofstream output("embedded/webview_base.hpp");
         output << "#pragma once" << std::endl
                << "#include <map>" << std::endl
-               << "#include <utility>" << std::endl
                << "#include <string>" << std::endl
-               << "inline std::map<const std::string, std::pair<std::size_t, unsigned char*>> embedded_files;";
+               << "#include <core/resource.hpp>" << std::endl
+               << "namespace Webview {" << std::endl
+               << "namespace Embedded {" << std::endl
+               << "inline std::map <const std::string, Resource> files;" << std::endl
+               << "}" << std::endl
+               << "}" << std::endl;
         output.close();
         std::vector<std::string> filesToInclude;
 
@@ -43,6 +47,7 @@ int main(int argc, char **args)
             std::ofstream fileStream("embedded/" + file.path().filename().string() + ".hpp");
             fileStream << "#pragma once" << std::endl
                        << "#include \"webview_base.hpp\"" << std::endl
+                       << "namespace Webview::Embedded {" << std::endl
                        << "inline unsigned char embed_file_" << fileFunc << "[] = {";
 
             std::ifstream fileDataStream(file.path(), std::ios::binary);
@@ -58,10 +63,11 @@ int main(int argc, char **args)
             }
             fileStream << "};";
 
-            fileStream << "inline auto webview_embed_file_" << fileFunc << " = []() -> bool { embedded_files.insert({\""
+            fileStream << "inline auto webview_embed_file_" << fileFunc << " = []() -> bool { files.insert({\""
                        << file.path().filename().string() << "\", {" << std::dec << buffer.size() << ","
                        << "embed_file_" << fileFunc << "}});"
-                       << "return true; }();";
+                       << "return true; }();" << std::endl
+                       << "}";
             fileStream.close();
         }
 
