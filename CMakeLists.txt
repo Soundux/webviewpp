@@ -19,7 +19,7 @@ if (WIN32)
 	endif()
 
 	exec_program(${NUGET_EXE}
-    	ARGS install "Microsoft.Web.WebView2" -Version 1.0.790-prerelease -ExcludeVersion -OutputDirectory ${CMAKE_BINARY_DIR}/packages)
+    	ARGS install "Microsoft.Web.WebView2" -ExcludeVersion -OutputDirectory ${CMAKE_BINARY_DIR}/packages)
 	exec_program(${NUGET_EXE}
     	ARGS install "Microsoft.Windows.ImplementationLibrary" -ExcludeVersion -OutputDirectory ${CMAKE_BINARY_DIR}/packages)
 
