@@ -8,7 +8,6 @@ file(GLOB src
 )
 
 add_library(webview STATIC ${src})
-# add_executable(webview ${src})
 
 if (WIN32)
     target_compile_options(webview PRIVATE /W4)
