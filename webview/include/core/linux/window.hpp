@@ -1,4 +1,5 @@
 #pragma once
+#if defined(__linux__)
 #include <core/basewindow.hpp>
 #include <gtk/gtk.h>
 #include <webkit2/webkit2.h>
@@ -41,3 +42,4 @@ namespace Webview
         void injectCode(const std::string &code) override;
     };
 } // namespace Webview
+#endif

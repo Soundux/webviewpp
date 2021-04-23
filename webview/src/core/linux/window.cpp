@@ -1,3 +1,4 @@
+#if defined(__linux__)
 #include <core/linux/window.hpp>
 #include <stdexcept>
 
@@ -208,3 +209,4 @@ void Webview::Window::onUriRequested(WebKitURISchemeRequest *request, [[maybe_un
         }
     }
 }
+#endif
