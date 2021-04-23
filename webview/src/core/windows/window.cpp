@@ -201,7 +201,7 @@ HRESULT Webview::Window::Window::onNavigationCompleted([[maybe_unused]] ICoreWeb
                                                        [[maybe_unused]] ICoreWebView2NavigationCompletedEventArgs *args)
 {
     wil::unique_cotaskmem_string uri;
-    webview2->get_Source(&uri);
+    webViewWindow->get_Source(&uri);
 
     BaseWindow::onNavigate(narrow(uri.get()));
     return S_OK;
