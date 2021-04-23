@@ -14,7 +14,11 @@ namespace Webview
         static void destroy(GtkWidget *, gpointer);
         static gboolean closed(GtkWidget *, GdkEvent *, gpointer);
         static gboolean resize(WebKitWebView *, GdkEvent *, gpointer);
+
+#if defined(WEBVIEW_EMBEDDED)
         static void onUriRequested(WebKitURISchemeRequest *, gpointer);
+#endif
+
         static void loadChanged(WebKitWebView *, WebKitLoadEvent, gpointer);
         static void messageReceived(WebKitUserContentManager *, WebKitJavascriptResult *, gpointer);
         static gboolean contextMenu(WebKitWebView *, GtkWidget *, WebKitHitTestResultContext *, gboolean, gpointer);

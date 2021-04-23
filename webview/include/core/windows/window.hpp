@@ -18,7 +18,11 @@ namespace Webview
         wil::com_ptr<ICoreWebView2> webViewWindow;
 
         static LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+
+#if defined(WEBVIEW_EMBEDDED)
         HRESULT onWebResourceRequested(ICoreWebView2 *, ICoreWebView2WebResourceRequestedEventArgs *);
+#endif
+
         HRESULT onNavigationStarted(ICoreWebView2 *, ICoreWebView2NavigationStartingEventArgs *);
         HRESULT onMessageReceived(ICoreWebView2 *, ICoreWebView2WebMessageReceivedEventArgs *);
         HRESULT onControllerCreated(ICoreWebView2Controller *);

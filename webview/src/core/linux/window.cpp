@@ -27,7 +27,10 @@ Webview::Window::Window(std::size_t width, std::size_t height) : BaseWindow("", 
     g_signal_connect(window, "destroy", reinterpret_cast<GCallback>(destroy), this);
     g_signal_connect(window, "delete_event", reinterpret_cast<GCallback>(closed), this);
     g_signal_connect(window, "configure-event", reinterpret_cast<GCallback>(resize), this);
+
+#if defined(WEBVIEW_EMBEDDED)
     webkit_web_context_register_uri_scheme(webkit_web_context_get_default(), "embedded", onUriRequested, this, nullptr);
+#endif
 
     g_signal_connect(contentManager, "script-message-received::external", reinterpret_cast<GCallback>(messageReceived),
                      this);
@@ -189,6 +192,7 @@ void Webview::Window::messageReceived([[maybe_unused]] WebKitUserContentManager 
     webview->handleRawCallRequest(jsc_value_to_string(value));
 }
 
+#if defined(WEBVIEW_EMBEDDED)
 void Webview::Window::onUriRequested(WebKitURISchemeRequest *request, [[maybe_unused]] gpointer userData)
 {
     auto *webview = reinterpret_cast<Window *>(userData);
@@ -209,4 +213,5 @@ void Webview::Window::onUriRequested(WebKitURISchemeRequest *request, [[maybe_un
         }
     }
 }
+#endif
 #endif

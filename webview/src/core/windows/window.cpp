@@ -155,6 +155,7 @@ HRESULT Webview::Window::Window::onControllerCreated(ICoreWebView2Controller *co
         }).Get(),
         &navigationStarting);
 
+#if defined(WEBVIEW_EMBEDDED)
     webViewWindow->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
     EventRegistrationToken webResourceRequested;
     webViewWindow->add_WebResourceRequested(
@@ -162,6 +163,7 @@ HRESULT Webview::Window::Window::onControllerCreated(ICoreWebView2Controller *co
             return onWebResourceRequested(sender, args);
         }).Get(),
         &webResourceRequested);
+#endif
 
     EventRegistrationToken messageReceived;
     webViewWindow->add_WebMessageReceived(
@@ -205,10 +207,10 @@ HRESULT Webview::Window::Window::onNavigationStarted([[maybe_unused]] ICoreWebVi
     return S_OK;
 }
 
+#if defined(WEBVIEW_EMBEDDED)
 HRESULT Webview::Window::Window::onWebResourceRequested([[maybe_unused]] ICoreWebView2 *sender,
                                                         ICoreWebView2WebResourceRequestedEventArgs *args)
 {
-#if defined(WEBVIEW_EMBEDDED)
     ICoreWebView2WebResourceRequest *req = nullptr;
     args->get_Request(&req);
 
@@ -239,9 +241,9 @@ HRESULT Webview::Window::Window::onWebResourceRequested([[maybe_unused]] ICoreWe
             args->put_Response(response.get());
         }
     }
-#endif
     return S_OK;
 }
+#endif
 
 void Webview::Window::Window::hide()
 {
