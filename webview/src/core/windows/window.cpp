@@ -1,9 +1,7 @@
 #if defined(_WIN32)
-#include <WebView2.h>
 #include <core/windows/window.hpp>
 #include <cstdlib>
 #include <stdexcept>
-#include <thread>
 
 #if defined(WEBVIEW_EMBEDDED)
 #include <Shlwapi.h>
@@ -88,7 +86,8 @@ LRESULT CALLBACK Webview::Window::Window::WndProc(HWND hwnd, UINT msg, WPARAM wP
                     return 0;
                 }
 
-                DestroyWindow(hwnd);
+                DestroyWindow(webview->hwnd);
+                webview->hwnd = nullptr;
             }
             break;
         case WM_QUIT:
@@ -261,7 +260,7 @@ void Webview::Window::Window::show()
 void Webview::Window::Window::run()
 {
     MSG msg;
-    while (GetMessage(&msg, nullptr, 0, 0))
+    while (hwnd && GetMessage(&msg, nullptr, 0, 0) != 0)
     {
         TranslateMessage(&msg);
         DispatchMessage(&msg);

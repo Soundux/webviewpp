@@ -1,10 +1,11 @@
 #pragma once
 #if defined(_WIN32)
-#include <WebView2.h>
 #include <Windows.h>
 #include <core/basewindow.hpp>
 #include <wil/com.h>
 #include <wrl.h>
+
+#include <WebView2.h>
 
 namespace Webview
 {
