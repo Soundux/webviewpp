@@ -393,4 +393,12 @@ std::string Webview::Window::Window::narrow(const std::wstring &wstr)
     return out;
 }
 
+std::string Webview::Window::Window::getUrl()
+{
+    wil::unique_cotaskmem_string uri;
+    webViewWindow->get_Source(&uri);
+
+    return narrow(uri.get());
+}
+
 #endif
