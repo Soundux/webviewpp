@@ -6,8 +6,12 @@ int main()
     webview.setTitle("Embedded Example");
     webview.enableDevTools(true);
 
+#if defined(_WIN32)
     webview.setUrl("file:///embedded/index.html");
-    webview.run();
+#else
+    webview.setUrl("embedded:///index.html");
+#endif
 
+    webview.run();
     return 0;
 }
