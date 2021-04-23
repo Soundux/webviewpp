@@ -139,7 +139,7 @@ void setTitle(std::string);
 ### Window::run
 
 ``` cpp
-void run() ;
+void run();
 ```
 
 > Runs the mainloop
@@ -152,7 +152,7 @@ void run() ;
 ### Window::exit
 
 ``` cpp
-void exit() ;
+void exit();
 ```
 
 > Closes the webview
@@ -193,7 +193,7 @@ void enableContextMenu(bool);
 ### Window::enableDevTools
 
 ``` cpp
-void enableDevTools(bool) ;
+void enableDevTools(bool);
 ```
 
 > Enables the developer tools
@@ -236,7 +236,7 @@ std::future<T> callFunction(Webview::JavaScriptFunction&& function);
 ### Window::runCode
 
 ``` cpp
-void runCode(std::string const&) ;
+void runCode(std::string const&);
 ```
 
 > Runs the given javascript code
@@ -246,7 +246,7 @@ void runCode(std::string const&) ;
 ### Window::injectCode
 
 ``` cpp
-void injectCode(std::string const&) ;
+void injectCode(std::string const&);
 ```
 
 > Makes the given javascript code run on document load
