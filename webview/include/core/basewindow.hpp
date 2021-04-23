@@ -8,6 +8,11 @@
 #include "resource.hpp"
 #include <javascript/function.hpp>
 
+#if __has_include(<embedded/include.hpp>)
+#define WEBVIEW_EMBEDDED
+#include <embedded/include.hpp>
+#endif
+
 namespace Webview
 {
     class Promise;
@@ -44,7 +49,10 @@ namespace Webview
         virtual void onNavigate(std::string);
         virtual void onResize(std::size_t, std::size_t);
 
-        virtual Resource getResource(const std::string &);
+#if defined(WEBVIEW_EMBEDDED)
+        Resource getResource(const std::string &);
+#endif
+
         virtual std::string formatCode(const std::string &);
         virtual void handleRawCallRequest(const std::string &);
         JavaScriptFunction &callFunction(JavaScriptFunction &&);

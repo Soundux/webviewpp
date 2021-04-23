@@ -3,6 +3,7 @@
 #include <javascript/promise.hpp>
 #include <json/bindings.hpp>
 #include <regex>
+#include <stdexcept>
 
 const std::string Webview::BaseWindow::callbackFunctionDefinition = R"js(
 async function {0}(...param)
@@ -47,11 +48,11 @@ bool Webview::BaseWindow::onClose()
     return false;
 }
 
-void Webview::BaseWindow::onResize(std::size_t width, std ::size_t height)
+void Webview::BaseWindow::onResize(std::size_t newWidth, std ::size_t newHeight)
 {
     if (resizeCallback)
     {
-        resizeCallback(width, height);
+        resizeCallback(newWidth, newHeight);
     }
 }
 
@@ -189,10 +190,17 @@ std::string Webview::BaseWindow::formatCode(const std::string &code)
     return formattedCode;
 }
 
-Webview::Resource Webview::BaseWindow::getResource(const std::string & /*name*/)
+#if defined(WEBVIEW_EMBEDDED)
+Webview::Resource Webview::BaseWindow::getResource(const std::string &resource)
 {
-    return {};
+    if (Embedded::files.find(resource) != Embedded::files.end())
+    {
+        return Embedded::files.at(resource);
+    }
+
+    throw std::runtime_error("Failed to find requested resource");
 }
+#endif
 
 void Webview::BaseWindow::enableContextMenu(bool state)
 {

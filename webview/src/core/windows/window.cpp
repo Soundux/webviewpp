@@ -5,6 +5,11 @@
 #include <stdexcept>
 #include <thread>
 
+#if defined(WEBVIEW_EMBEDDED)
+#include <Shlwapi.h>
+#include <core/windows/mimes.hpp>
+#endif
+
 Webview::Window::Window(std::string identifier, std::size_t width, std::size_t height)
     : BaseWindow(std::move(identifier), width, height), instance(GetModuleHandle(nullptr))
 {
@@ -201,9 +206,40 @@ HRESULT Webview::Window::Window::onNavigationStarted([[maybe_unused]] ICoreWebVi
 }
 
 HRESULT Webview::Window::Window::onWebResourceRequested([[maybe_unused]] ICoreWebView2 *sender,
-                                                        ICoreWebView2WebResourceRequestedEventArgs * /*args*/)
+                                                        ICoreWebView2WebResourceRequestedEventArgs *args)
 {
-    // TODO(implement)
+#if defined(WEBVIEW_EMBEDDED)
+    ICoreWebView2WebResourceRequest *req = nullptr;
+    args->get_Request(&req);
+
+    LPWSTR rawURI{};
+    req->get_Uri(&rawURI);
+
+    auto uri = narrow(rawURI);
+
+    if (uri.length() > 16 && uri.substr(0, 16) == "file:///embedded")
+    {
+        auto fileName = uri.substr(uri.find_last_of('/') + 1);
+        auto mime = fileName.substr(fileName.find_last_of('.'));
+
+        auto content = getResource(fileName);
+        if (content.data)
+        {
+            wil::com_ptr<ICoreWebView2Environment> env;
+            wil::com_ptr<ICoreWebView2_2> webview2;
+            webViewWindow->QueryInterface(IID_PPV_ARGS(&webview2));
+            webview2->get_Environment(&env);
+
+            wil::com_ptr<IStream> stream = SHCreateMemStream(content.data, content.size);
+
+            wil::com_ptr<ICoreWebView2WebResourceResponse> response;
+            env->CreateWebResourceResponse(stream.get(), 200, L"OK",
+                                           widen("Content-Type: " + mimeTypeList.at(mime)).c_str(), &response);
+
+            args->put_Response(response.get());
+        }
+    }
+#endif
     return S_OK;
 }
 
@@ -313,13 +349,13 @@ void Webview::Window::injectCode(const std::string &code)
     webViewWindow->AddScriptToExecuteOnDocumentCreated(widen(formatCode(code)).c_str(), nullptr);
 }
 
-void Webview::Window::onResize(std::size_t width, std::size_t height)
+void Webview::Window::onResize(std::size_t newWidth, std::size_t newHeight)
 {
-    BaseWindow::onResize(width, height);
+    BaseWindow::onResize(newWidth, newHeight);
 
     if (!webViewController)
     {
-        runOnControllerCreated.emplace_back([=] { onResize(width, height); });
+        runOnControllerCreated.emplace_back([=] { onResize(newWidth, newHeight); });
         return;
     }
 
@@ -343,7 +379,8 @@ std::wstring Webview::Window::Window::widen(const std::string &str)
 }
 std::string Webview::Window::Window::narrow(const std::wstring &wstr)
 {
-    auto sz = WideCharToMultiByte(65001, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
+    auto sz =
+        WideCharToMultiByte(65001, 0, wstr.c_str(), static_cast<int>(wstr.length()), nullptr, 0, nullptr, nullptr);
     if (!sz)
     {
         return std::string();
