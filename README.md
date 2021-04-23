@@ -56,7 +56,7 @@ Usage:
       ./embed_helper <path to folder containing all the required files>
       ```
   - Add the parent folder of the `embedded` folder to your include directories
-  - Change `navigate` calls to
+  - Change `setUrl` calls to
     - `embedded://<filepath>` on Linux
     - `file:///embedded/<filepath>` on Windows
 
