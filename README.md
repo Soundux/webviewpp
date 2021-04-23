@@ -40,6 +40,8 @@ int main()
 }
 ```
 
+For more examples see [`examples`](https://github.com/Soundux/webviewpp/tree/master/examples) 
+
 ## Embedding
 webviewpp supports embedding of all required files.  
 To embed your files you have to use the [embed-helper](https://github.com/Soundux/webviewpp/tree/master/embed-helper).
