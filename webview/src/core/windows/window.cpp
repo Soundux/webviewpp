@@ -350,8 +350,10 @@ void Webview::Window::injectCode(const std::string &code)
     webViewWindow->AddScriptToExecuteOnDocumentCreated(widen(formatCode(code)).c_str(), nullptr);
 }
 
-void Webview::Window::onResize(std::size_t newWidth, std::size_t newHeight)
+void Webview::Window::onResize([[maybe_unused]] std::size_t _width, [[maybe_unused]] std::size_t _height)
 {
+    auto [newWidth, newHeight] = getSize(); //* Yes. I do this because what we get through the WndProc is bullshit
+
     BaseWindow::onResize(newWidth, newHeight);
 
     if (!webViewController)
