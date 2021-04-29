@@ -30,7 +30,7 @@ const std::string Webview::BaseWindow::resolveCall = R"js(
 const std::string Webview::BaseWindow::resolveNativeCall = R"js(
 window.external.invoke(JSON.stringify({
     "seq": {0},
-    "result": {1} | null
+    "result": {1} ? {1} : null
 }));
 )js";
 
