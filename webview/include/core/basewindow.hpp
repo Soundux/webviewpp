@@ -103,10 +103,15 @@ namespace Webview
         /// \preconditions `T` must be serializable by nlohmann::json
         /// \remarks You should never call `.get()` on the returned future in a **non async** context as it will
         /// freeze the webview
-        template <typename T> std::future<T> callFunction(JavaScriptFunction &&function)
+        template <typename T = void> std::future<T> callFunction(JavaScriptFunction &&function)
         {
             auto future = callFunction(std::forward<JavaScriptFunction>(function)).getResult();
-            return std::async(std::launch::async, [future] { return future.get().get<T>(); });
+            return std::async(std::launch::async, [future] {
+                if constexpr (!std::is_same_v<T, void>)
+                {
+                    return future.get().get<T>();
+                }
+            });
         }
 
         /// \effects Runs the given javascript code
