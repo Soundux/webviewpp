@@ -55,7 +55,7 @@ namespace Webview
 
         virtual std::string formatCode(const std::string &);
         virtual void handleRawCallRequest(const std::string &);
-        JavaScriptFunction &callFunction(JavaScriptFunction &&);
+        JavaScriptFunction &callFunctionInternal(JavaScriptFunction &&);
 
       public:
         BaseWindow(const BaseWindow &) = delete;
@@ -105,11 +105,13 @@ namespace Webview
         /// freeze the webview
         template <typename T = void> std::future<T> callFunction(JavaScriptFunction &&function)
         {
-            auto future = callFunction(std::forward<JavaScriptFunction>(function)).getResult();
-            return std::async(std::launch::async, [future] {
+            auto &future = callFunctionInternal(std::forward<JavaScriptFunction>(function));
+            auto result = future.getResult();
+
+            return std::async(std::launch::async, [result] {
                 if constexpr (!std::is_same_v<T, void>)
                 {
-                    return future.get().get<T>();
+                    return result.get().get<T>();
                 }
             });
         }

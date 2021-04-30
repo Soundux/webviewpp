@@ -74,8 +74,12 @@ void Webview::BaseWindow::handleRawCallRequest(const std::string &rawRequest)
         if (parsed.find("result") != parsed.end())
         {
             auto request = parsed.get<NativeCallResponse>();
-            auto &function = nativeCallRequests.at(request.seq);
-            function.resolve(request.result);
+            if (nativeCallRequests.find(request.seq) != nativeCallRequests.end())
+            {
+                auto &function = nativeCallRequests.at(request.seq);
+                function.resolve(request.result);
+                nativeCallRequests.erase(request.seq);
+            }
         }
         else
         {
@@ -207,9 +211,10 @@ void Webview::BaseWindow::enableContextMenu(bool state)
     isContextMenuAllowed = state;
 }
 
-Webview::JavaScriptFunction &Webview::BaseWindow::callFunction(Webview::JavaScriptFunction &&function)
+Webview::JavaScriptFunction &Webview::BaseWindow::callFunctionInternal(Webview::JavaScriptFunction &&function)
 {
-    static std::uint32_t seq = 0;
+    static std::atomic<std::uint32_t> seq = 0;
+    auto sequence = ++seq;
 
     auto call = function.getName() + "(";
     for (const auto &argument : function.getArguments())
@@ -225,10 +230,10 @@ Webview::JavaScriptFunction &Webview::BaseWindow::callFunction(Webview::JavaScri
         call += ")";
     }
 
-    auto code = std::regex_replace(resolveNativeCall, std::regex(R"(\{0\})"), std::to_string(++seq));
+    auto code = std::regex_replace(resolveNativeCall, std::regex(R"(\{0\})"), std::to_string(sequence));
     code = std::regex_replace(code, std::regex(R"(\{1\})"), call);
     runCode(code);
 
-    nativeCallRequests.emplace(seq, function);
-    return nativeCallRequests.at(seq);
+    nativeCallRequests.emplace(sequence, function);
+    return nativeCallRequests.at(sequence);
 }
