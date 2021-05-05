@@ -234,6 +234,5 @@ Webview::JavaScriptFunction &Webview::BaseWindow::callFunctionInternal(Webview::
     code = std::regex_replace(code, std::regex(R"(\{1\})"), call);
     runCode(code);
 
-    nativeCallRequests.emplace(sequence, function);
-    return nativeCallRequests.at(sequence);
+    return nativeCallRequests.emplace(sequence, function).first->second;
 }
