@@ -42,6 +42,8 @@ Webview::Window::Window(std::string identifier, std::size_t width, std::size_t h
         throw std::runtime_error("Failed to create window");
     }
 
+    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE); // NOLINT
+
     RECT rect;
     GetWindowRect(hwnd, &rect);
     auto x = (GetSystemMetrics(SM_CXSCREEN) - width) / 2;
@@ -49,7 +51,6 @@ Webview::Window::Window(std::string identifier, std::size_t width, std::size_t h
     SetWindowPos(hwnd, nullptr, x, y, width, height, 0);
 
     SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
-    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE); // NOLINT
     ShowWindow(hwnd, SW_SHOWDEFAULT);
     UpdateWindow(hwnd);
     SetFocus(hwnd);
