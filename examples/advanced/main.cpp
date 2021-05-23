@@ -62,6 +62,7 @@ int main()
     });
 
     webview.setUrl("https://ddg.gg");
+    webview.show();
     webview.run();
 
     return 0;

@@ -35,6 +35,7 @@ int main()
       return num + 10;
   }));
 
+  webview.show();
   webview.run();
   return 0;
 }

@@ -12,6 +12,7 @@ int main()
     webview.setUrl("embedded:///index.html");
 #endif
 
+    webview.show();
     webview.run();
     return 0;
 }

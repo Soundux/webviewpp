@@ -28,7 +28,7 @@ namespace Webview
         std::string title;
         std::string identifier; //* Only required on windows
 
-        bool hidden = false;
+        bool hidden = true;
         bool isContextMenuAllowed = true;
 
         std::function<bool()> closeCallback;

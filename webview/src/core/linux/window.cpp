@@ -44,7 +44,7 @@ Webview::Window::Window(std::size_t width, std::size_t height) : BaseWindow("", 
     injectCode(setupRpc);
 
     gtk_widget_grab_focus(webview);
-    gtk_widget_show_all(window);
+    gtk_widget_show_all(scrollView);
 }
 
 Webview::Window::Window([[maybe_unused]] const std::string &identifier, std::size_t width, std::size_t height)
@@ -55,8 +55,8 @@ Webview::Window::Window([[maybe_unused]] const std::string &identifier, std::siz
 void Webview::Window::show()
 {
     BaseWindow::show();
-    gtk_widget_show(window);
     gtk_widget_grab_focus(window);
+    gtk_widget_show(window);
 }
 
 void Webview::Window::hide()
