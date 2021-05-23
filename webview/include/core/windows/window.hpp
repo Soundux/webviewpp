@@ -6,6 +6,7 @@
 #include <wrl.h>
 
 #include <WebView2.h>
+#include <WebView2Experimental.h>
 
 namespace Webview
 {
@@ -38,6 +39,7 @@ namespace Webview
 
       public:
         Window(std::string identifier, std::size_t width, std::size_t height);
+        void disableAcceleratorKeys(bool);
 
         void hide() override;
         void show() override;

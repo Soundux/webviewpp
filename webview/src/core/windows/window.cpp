@@ -200,6 +200,16 @@ HRESULT Webview::Window::Window::onMessageReceived([[maybe_unused]] ICoreWebView
 HRESULT Webview::Window::Window::onNavigationCompleted([[maybe_unused]] ICoreWebView2 *sender,
                                                        [[maybe_unused]] ICoreWebView2NavigationCompletedEventArgs *args)
 {
+    //* This fix is fucking retarded. I can't do anything about this until WebView2 fixes this
+    //* https://github.com/MicrosoftEdge/WebView2Feedback/issues/1077
+
+    static bool first = true;
+    if (first && hidden)
+    {
+        hide();
+        first = false;
+    }
+
     wil::unique_cotaskmem_string uri;
     webViewWindow->get_Source(&uri);
 
@@ -254,7 +264,9 @@ void Webview::Window::Window::hide()
 void Webview::Window::Window::show()
 {
     BaseWindow::show();
+
     ShowWindow(hwnd, SW_SHOW);
+    UpdateWindow(hwnd);
     SetFocus(hwnd);
 }
 
@@ -401,6 +413,24 @@ std::string Webview::Window::Window::getUrl()
     webViewWindow->get_Source(&uri);
 
     return narrow(uri.get());
+}
+
+void Webview::Window::Window::disableAcceleratorKeys(bool state)
+{
+    if (!webViewController)
+    {
+        runOnControllerCreated.emplace_back([=] { disableAcceleratorKeys(state); });
+        return;
+    }
+
+    wil::com_ptr<ICoreWebView2Settings> settings;
+    webViewWindow->get_Settings(&settings);
+
+    auto experimentalSettings = settings.try_query<ICoreWebView2ExperimentalSettings2>();
+    if (experimentalSettings)
+    {
+        experimentalSettings->put_AreBrowserAcceleratorKeysEnabled(!state);
+    }
 }
 
 #endif
