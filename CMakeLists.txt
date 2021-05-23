@@ -39,10 +39,11 @@ endif()
 target_include_directories(webview SYSTEM PUBLIC "webview/include/")
 target_include_directories(webview SYSTEM PUBLIC "lib/json/single_include/nlohmann")
 
-target_compile_features(webview PUBLIC cxx_std_17)
-set_target_properties(webview PROPERTIES CMAKE_CXX_STANDARD 17)
-set_target_properties(webview PROPERTIES CMAKE_CXX_EXTENSIONS Off)
-set_target_properties(webview PROPERTIES CMAKE_CXX_STANDARD_REQUIRED On)
+target_compile_features(webview PRIVATE cxx_std_17)
+set_target_properties(webview PROPERTIES 
+                      CXX_STANDARD 17
+                      CXX_EXTENSIONS OFF
+                      CXX_STANDARD_REQUIRED ON)
 
 set_target_properties(webview PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(webview PROPERTIES PROJECT_NAME ${PROJECT_NAME})
