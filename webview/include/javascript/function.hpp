@@ -36,9 +36,9 @@ namespace Webview
                     {
                         if constexpr (Traits::is_optional<std::decay_t<decltype(val)>>::value)
                         {
-                            if (val)
+                            if (!j.at(index).is_null())
                             {
-                                *val =
+                                val =
                                     j.at(index)
                                         .template get<std::decay_t<typename std::decay_t<decltype(val)>::value_type>>();
                             }
