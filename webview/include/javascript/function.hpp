@@ -79,6 +79,8 @@ namespace Webview
                         return nlohmann::json(rtn);
                     }
                 }
+
+                return nullptr;
             };
         }
 
