@@ -30,15 +30,18 @@ std::string Webview::JavaScriptFunction::getName() const
 
 void Webview::JavaScriptFunction::resolve(const nlohmann::json &result)
 {
+    std::lock_guard guard(argumentsMutex);
     this->result.set_value(result);
 }
 
 std::shared_future<nlohmann::json> Webview::JavaScriptFunction::getResult()
 {
+    std::lock_guard guard(argumentsMutex);
     return result.get_future();
 }
 
 Webview::JavaScriptFunction::JavaScriptFunction(JavaScriptFunction &other)
-    : name(other.name), result(std::move(other.result)), arguments(std::move(other.arguments))
+    : name(other.name), result((std::lock_guard(other.resultMutex), std::move(other.result))),
+      arguments((std::lock_guard(other.argumentsMutex), std::move(other.arguments)))
 {
 }

@@ -127,13 +127,19 @@ namespace Webview
 
     class JavaScriptFunction
     {
+
         std::string name;
+
+        std::mutex resultMutex;
         std::promise<nlohmann::json> result;
+
+        std::mutex argumentsMutex;
         std::vector<nlohmann::json> arguments;
 
       public:
         template <typename... T> JavaScriptFunction(std::string name, const T &...params) : name(std::move(name))
         {
+            std::lock_guard guard(argumentsMutex);
             auto unpack = [this](auto &&arg) { arguments.emplace_back(nlohmann::json(arg)); };
             (unpack(params), ...);
         }
