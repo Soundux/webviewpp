@@ -73,6 +73,7 @@ void Webview::BaseWindow::handleRawCallRequest(const std::string &rawRequest)
     {
         if (parsed.find("result") != parsed.end())
         {
+            std::lock_guard lock(nativeCallRequestsMutex);
             auto request = parsed.get<NativeCallResponse>();
             if (nativeCallRequests.find(request.seq) != nativeCallRequests.end())
             {
@@ -83,6 +84,7 @@ void Webview::BaseWindow::handleRawCallRequest(const std::string &rawRequest)
         }
         else
         {
+            std::lock_guard lock(functionsMutex);
             auto request = parsed.get<FunctionCallRequest>();
             const auto &function = functions.at(request.function);
 
@@ -181,6 +183,7 @@ void Webview::BaseWindow::expose(const Function &function)
         ptr = std::make_shared<Function>(function);
     }
 
+    std::lock_guard lock(functionsMutex);
     functions.emplace(function.getName(), ptr);
     injectCode(std::regex_replace(callbackFunctionDefinition, std::regex(R"(\{0\})"), function.getName()));
 }
@@ -234,5 +237,6 @@ Webview::JavaScriptFunction &Webview::BaseWindow::callFunctionInternal(Webview::
     code = std::regex_replace(code, std::regex(R"(\{1\})"), call);
     runCode(code);
 
+    std::lock_guard lock(nativeCallRequestsMutex);
     return nativeCallRequests.emplace(sequence, function).first->second;
 }

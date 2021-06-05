@@ -41,7 +41,10 @@ namespace Webview
         static const std::string resolveNativeFunction;
         static const std::string callbackFunctionDefinition;
 
+        std::mutex functionsMutex;
         std::map<std::string, std::shared_ptr<Function>> functions;
+
+        std::mutex nativeCallRequestsMutex;
         std::map<std::uint32_t, JavaScriptFunction> nativeCallRequests;
 
       protected:
