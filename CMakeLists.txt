@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 project(webview VERSION 0.2 DESCRIPTION "A cross-platform C++ webview library")
+option(WINDOWS_8 "Replaces the call to SetProcessDpiAwarenessContext call with SetProcessDpiAwareness to support Windows 8.1" OFF)
 
 file(GLOB src
     "webview/src/*.cpp"
@@ -22,6 +23,11 @@ if (WIN32)
     	ARGS install "Microsoft.Web.WebView2" -Version 1.0.865-prerelease -ExcludeVersion -OutputDirectory ${CMAKE_BINARY_DIR}/packages)
 	exec_program(${NUGET_EXE}
     	ARGS install "Microsoft.Windows.ImplementationLibrary" -ExcludeVersion -OutputDirectory ${CMAKE_BINARY_DIR}/packages)
+
+    if (WINDOWS_8)
+        target_link_libraries(webview INTERFACE Shcore.lib)
+        target_compile_definitions(webview PRIVATE WEBVIEWPP_WINDOWS_8=1)
+    endif()
 
     target_link_libraries(webview INTERFACE Version.lib Shlwapi.lib ${CMAKE_BINARY_DIR}/packages/Microsoft.Web.WebView2/build/native/x64/WebView2LoaderStatic.lib ${CMAKE_BINARY_DIR}/packages/Microsoft.Windows.ImplementationLibrary/build/native/Microsoft.Windows.ImplementationLibrary.targets)
     target_include_directories(webview SYSTEM PUBLIC ${CMAKE_BINARY_DIR}/packages/Microsoft.Web.WebView2/build/native/include ${CMAKE_BINARY_DIR}/packages/Microsoft.Windows.ImplementationLibrary/include)

@@ -3,6 +3,10 @@
 #include <cstdlib>
 #include <stdexcept>
 
+#if defined(WEBVIEWPP_WINDOWS_8)
+#include <shellscalingapi.h>
+#endif
+
 #if defined(WEBVIEW_EMBEDDED)
 #include <Shlwapi.h>
 #include <core/windows/mimes.hpp>
@@ -42,7 +46,12 @@ Webview::Window::Window(std::string identifier, std::size_t width, std::size_t h
         throw std::runtime_error("Failed to create window");
     }
 
+#if defined(WEBVIEWPP_WINDOWS_8)
+
+    SetProcessDpiAwareness(PROCESS_SYSTEM_DPI_AWARE); // NOLINT
+#else
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE); // NOLINT
+#endif
 
     RECT rect;
     GetWindowRect(hwnd, &rect);
