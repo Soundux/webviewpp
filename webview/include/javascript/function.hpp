@@ -34,18 +34,18 @@ namespace Webview
                 Helpers::setTuple(packedArgs, [&j](auto index, auto &val) {
                     if (j.size() > index)
                     {
-                        if constexpr (Traits::is_optional<std::decay_t<decltype(val)>>::value)
+                        if (!j.at(index).is_null())
                         {
-                            if (!j.at(index).is_null())
+                            if constexpr (Traits::is_optional<std::decay_t<decltype(val)>>::value)
                             {
                                 val =
                                     j.at(index)
                                         .template get<std::decay_t<typename std::decay_t<decltype(val)>::value_type>>();
                             }
-                        }
-                        else
-                        {
-                            j.at(index).get_to(val);
+                            else
+                            {
+                                j.at(index).get_to(val);
+                            }
                         }
                     }
                 });
