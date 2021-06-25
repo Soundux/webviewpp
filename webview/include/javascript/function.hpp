@@ -36,7 +36,8 @@ namespace Webview
                     {
                         if (!j.at(index).is_null())
                         {
-                            if constexpr (Traits::is_optional<std::decay_t<decltype(val)>>::value)
+                            if constexpr (Traits::is_optional<std::decay_t<decltype(val)>>::value ||
+                                          Traits::is_shared_ptr<std::decay_t<decltype(val)>>::value)
                             {
                                 val =
                                     j.at(index)
@@ -66,7 +67,7 @@ namespace Webview
                     auto unpack = [&rtn, function](auto &&...args) { rtn = std::move(function(args...)); };
                     std::apply(unpack, packedArgs);
 
-                    if constexpr (Traits::is_optional<rtn_t>::value)
+                    if constexpr (Traits::is_optional<rtn_t>::value || Traits::is_shared_ptr<rtn_t>::value)
                     {
                         //* Just to make sure this wont break with optionals
                         if (rtn)

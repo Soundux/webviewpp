@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <memory>
 #include <optional>
 #include <tuple>
 
@@ -25,6 +26,15 @@ namespace Webview
           private:
             static std::uint8_t test(...);
             template <typename O> static auto test(std::optional<O> *) -> std::uint16_t;
+
+          public:
+            static const bool value = sizeof(test(reinterpret_cast<T *>(0))) == sizeof(std::uint16_t);
+        };
+        template <typename T> struct is_shared_ptr
+        {
+          private:
+            static std::uint8_t test(...);
+            template <typename O> static auto test(std::shared_ptr<O> *) -> std::uint16_t;
 
           public:
             static const bool value = sizeof(test(reinterpret_cast<T *>(0))) == sizeof(std::uint16_t);
