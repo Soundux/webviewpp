@@ -7,6 +7,13 @@ A cross-platform C++17 library that allows you to create a simple webview.
 | Windows  | [Webview2](https://docs.microsoft.com/microsoft-edge/webview2/) (Edge Chromium) | WinAPI |
 | Linux    | WebKit2GTK                                                                      | GTK    |
 
+### Supported Windows Versions
+| Version | Remarks |
+| ------- | ------- |
+| 11      | Will not require Webview2 Runtime or Canary-Edge build |
+| 10      | Explicit installation of the [`Webview2 Runtime`](https://developer.microsoft.com/microsoft-edge/webview2/#download-section) may be required |
+| 8       | Requires `WINDOWS_8` to be set to `ON` from your CMakeLists |
+
 ## Usage
 
 - Add the library to your project
