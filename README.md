@@ -1,8 +1,9 @@
 # Archived
-This project has been superseeded by [saucer](https://github.com/saucer/saucer)
+This project has been superseded by [saucer](https://github.com/saucer/saucer).
 
 ---
 <del>
+  
 ## webviewpp
 A cross-platform C++17 library that allows you to create a simple webview.
 
