@@ -1,3 +1,8 @@
+# Archived
+This project has been superseeded by [saucer](https://github.com/saucer/saucer)
+
+---
+<del>
 ## webviewpp
 A cross-platform C++17 library that allows you to create a simple webview.
 
@@ -295,3 +300,4 @@ void setResizeCallback(std::function<void (std::size_t, std::size_t)>);
 -----
 
 > This work was originally based on the work of [MichaelKim](https://github.com/MichaelKim/webview)
+</del>
